@@ -85,7 +85,7 @@ class Session
 	 * @param string $identifier
 	 * @return Session
 	 */
-	static public static function Of($owner, $identifier = '')
+	static public function Of($owner, $identifier = '')
 	{
 		return new self($owner,$identifier);
 	}

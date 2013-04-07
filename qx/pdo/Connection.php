@@ -192,6 +192,7 @@ class Connection {
 		$this->_exec($s);
 		
 	}
+
 	public function build($clause, &$args = null)
 	{
 		$clause = (object)$clause;
@@ -244,6 +245,7 @@ class Connection {
 		
 		return $sql;
 	}
+
 	private function buildWhereClose($w, &$args, &$n = 0, $depth = 0)
 	{
 		if(is_array($w))
@@ -282,6 +284,7 @@ class Connection {
 			$w = !empty($w) ? is_array($w) ? '('.implode(') AND (',$w).')' : $w : '';
 		return $w;
 	}
+
 	public function createClause($table = '')
 	{
 		return (object)array(
@@ -294,6 +297,7 @@ class Connection {
 			'limit'=>array()
 		);
 	}
+
 	public function mergeClauses($c1,$c2, array $overrides = array())
 	{
 		$c1 = (object)$c1;
@@ -321,6 +325,7 @@ class Connection {
 		
 		return $c;
 	}
+
 	public function encodeDateTime($date)
 	{
 		if(!is_numeric($date))
@@ -332,6 +337,7 @@ class Connection {
 		}
 		return date('Y-m-d H:i:s',$date);
 	}
+	
 	public function encodeDate($date)
 	{
 		if(!is_numeric($date) && strpos($date,'-') === false)
@@ -341,6 +347,7 @@ class Connection {
 		}
 		return date('Y-m-d',$date);
 	}
+
 	public function decodeDate($date)
 	{
 		if(empty($date))

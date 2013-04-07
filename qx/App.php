@@ -28,8 +28,8 @@ class App extends ViewController
 	public function auth()
 	{
 		if(!$this->_auth)
-			$this->_auth = new Auth::Instance();
-		return $this->_auth();
+			$this->_auth = Auth::Instance();
+		return $this->_auth;
 	}
 	
 	private $_mainResponse;
