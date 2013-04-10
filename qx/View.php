@@ -72,7 +72,7 @@ class ViewJson extends View
 	{
 		//header('Content-Type: application/json; charset=UTF-8');
 		$res = array(
-			'header'=>null,
+			'header'=>$ctrl->response()->header(),
 			'body'=>$datas->toObject()
 		);
 		return json_encode($res);

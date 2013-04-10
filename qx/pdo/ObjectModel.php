@@ -48,6 +48,8 @@ class ObjectModel extends \qx\ObjectModel
 	public function insert()
 	{
 		$this->connection->insert($this->tableName(),$this->modifiedDatas());
+		if(is_string($this->_primaryKey) && $this->_fieldsDefinitions[$this->_primaryKey]['ai'])
+			$this->set_primaryKey($this->connection->pdo()->lastInsertId());
 	}
 	public function delete()
 	{
@@ -66,7 +68,10 @@ class ObjectModel extends \qx\ObjectModel
 		if(!isset($q['from']))
 			$q['from'] = $o->connection->table($o->tableName());
 		$q = $o->connection->mergeClauses($o->defaultClause(), $q);
-		return $o->connection->select($q,$args,get_called_class());
+		$a = $o->connection->select($q,$args,get_called_class());
+		foreach ($a as $o)
+			$o->clearModifications(); //XXX
+		return $a;
 	}
 	static public function FindOne(array $q = array(), $args = null)
 	{
@@ -87,8 +92,11 @@ class ObjectModel extends \qx\ObjectModel
 		$q->limit = array($from, $pageSize);
 		if($sort)
 			$q->orderBy = $sort;
+		$a = $o->connection->select($q,$args,get_called_class());
+		foreach ($a as $o)
+			$o->clearModifications(); //XXX
 		return array(
-			$o->connection->select($q,$args,get_called_class()),
+			$a,
 			$count[0]->c
 		);
 	}

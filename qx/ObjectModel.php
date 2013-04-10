@@ -53,11 +53,14 @@ class ObjectModel extends Observable
 	{
 		if(in_array($name, $this->_fields))
 		{
+			$lastValue = isset($this->_datas[$name]) ? $this->_datas[$name] : null ;
 			if(method_exists($this, $this->_set_prefix.$name))
 				$this->_datas[$name] = $this->{$this->_set_prefix.$name}($value);
 			else
 				$this->set_field($name, $value);
-			$this->setModified($name);
+
+			if($lastValue !== $this->_datas[$name])
+				$this->setModified($name);
 		}
 	}
 
@@ -69,8 +72,7 @@ class ObjectModel extends Observable
 	protected function init($datas = null)
 	{
 		$this->import($datas);
-		$pk = $this->get_primaryKey();
-		if(!empty($pk) && $this->_autoFetch)
+		if($this->primaryKeyFilled() && $this->_autoFetch)
 			$this->fetch();
 	}
 
@@ -121,14 +123,18 @@ class ObjectModel extends Observable
 
 	public function set_primaryKey($datas)
 	{
-		$this->primaryKeyFilled = false;
-		if(!is_array($this->_primaryKey) && 
-			!is_object($datas) && !is_array($datas) &&
-			in_array($this->_primaryKey, $this->_fields)
-		)
+		$this->primaryKeyFilled = false; //unused
+
+		if(!is_array($this->_primaryKey))
 		{
-			$this->_datas[$this->_primaryKey] = $datas;
-			$this->primaryKeyFilled = !empty($datas);
+			if(!is_object($datas) && !is_array($datas))
+				$this->_datas[$this->_primaryKey] = $datas;
+			else {
+				$datas = (array)$datas;
+				if(isset($datas[$this->_primaryKey]))
+					$this->_datas[$this->_primaryKey] = $datas[$this->_primaryKey];
+			} 
+			$this->primaryKeyFilled = !empty($this->_datas[$this->_primaryKey]);
 		}
 		else if( is_array($this->_primaryKey) && (is_object($datas) || is_array($datas)) )
 		{
@@ -144,8 +150,24 @@ class ObjectModel extends Observable
 				$this->primaryKeyFilled = $filled;
 			}
 		}
-	}
 
+	}
+	public function primaryKeyFilled()
+	{
+		$a = $this->get_primaryKey();
+		if(is_array($a))
+		{
+			foreach ($a as $v)
+				if(!empty($v))
+					return true;
+		}
+		else
+		{
+			return !empty($a);
+		}
+		return false;
+		
+	}
 	protected function set_field($name, $value)
 	{
 		if(in_array($name, $this->_fields))
@@ -231,7 +253,7 @@ class ObjectModel extends Observable
 
 	public function exists()
 	{
-		return in_array('id', $this->_fields) ? !empty($this->id) : false;
+		return in_array('id', $this->_fields) ? !empty($this->id) : false; //XXX
 	}
 
 	public function modifiedDatas()

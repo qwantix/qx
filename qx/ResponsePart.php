@@ -160,6 +160,50 @@ class ResponsePart
 		return $this->_type;
 	}
 	
+	private $_header = array();
+	public function header($key = null, $value = null)
+	{
+		$nArgs = func_num_args();
+		if($nArgs == 0)
+		{
+			return $this->_header;
+		}
+		elseif($nArgs == 1)
+		{
+			return isset($this->_header[$key]) ? $this->_header[$key] : null;
+		}
+		else
+		{
+			$this->_header[$key] = $value;
+			return $this;
+		}
+	}
+
+	public function isError()
+	{
+		if(func_num_args() > 0)
+		{
+			$this->header('status',(bool)func_get_arg(0) ? 'error' : 'success');
+			return $this;
+		}
+		return $this->header('status') == 'error';
+	}
+	public function isSuccess()
+	{
+		if(func_num_args() > 0)
+			return $this->isError(false);
+		return !$this->isError();
+	}
+
+	public function addError($errMsg, $errDetail = null)
+	{
+		$this->isError(true);
+		$a = $this->header('error');
+		if(!$a)
+			$a = array();
+		$a[] = array($errMsg, $errDetail);
+		$this->header('error',$a);
+	}
 	public function addScript($file)
 	{
 		if(!isset($this->_datas->__scripts))
