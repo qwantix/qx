@@ -59,7 +59,6 @@ class Response extends Observable
 				$data->$ns = $out = $part->createView()
 										->render($data,$ctrl);
 				//Remerge for template modifiction
-
 				$this->mergeInclusions($part->datas(), $data);
 				
 			}
@@ -68,8 +67,7 @@ class Response extends Observable
 
 			}
 
-			if($standalone)
-				break;
+			
 			if($part->wrapInMain())
 			{
 				try
@@ -81,10 +79,12 @@ class Response extends Observable
 				catch(\qx\ViewNotFoundException $e) {}
 			}
 
-
-
+			if($standalone)
+				break;
 		}
 
+		if($enc = $part->encapsulation())
+			$out = $part->type($enc)->createView()->render(new Data($out),$part->controller());
 		return $out;
 	}
 
@@ -94,13 +94,24 @@ class Response extends Observable
 		{
 			if(!is_array($dest->__scripts))
 				$dest->__scripts = array();
-			$dest->__scripts = array_merge($source->__scripts,$dest->__scripts);
+
+			$a = $dest->__scripts;
+			foreach ($source->__scripts as $v)
+				if(!in_array($v, $a))
+					$a[] = $v;
+			$dest->__scripts = $a;
+			//$dest->__scripts = array_merge($source->__scripts,$dest->__scripts);
 		}
 		if(is_array($source->__styles))
 		{
 			if(!is_array($dest->__styles))
 				$dest->__styles = array();
-			$dest->__styles = array_merge($source->__styles,$dest->__styles);
+			$a = $dest->__styles;
+			foreach ($source->__styles as $v)
+				if(!in_array($v, $a))
+					$a[] = $v;
+			$dest->__styles = $a;
+			//$dest->__styles = array_merge($source->__styles,$dest->__styles);
 		}
 		return $dest;
 	}

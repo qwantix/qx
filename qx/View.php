@@ -32,7 +32,19 @@ abstract class View {
 	{
 		$this->name = $name;
 	}
+
+	protected $controller;
+	public function setViewController(ViewController $ctrl = null)
+	{
+		$this->controller = $ctrl;
+	}
+
+	public function getViewController()
+	{
+		return $this->controller;
+	}
 	
+
 	protected function filename($ext = '.html')
 	{
 		return Config::Of('app')->get('root').
@@ -42,14 +54,16 @@ abstract class View {
 			"$this->name$ext";
 	}
 	
-	abstract public function render(Data $datas, ViewController $ctrl);
+	abstract public function render(Data $datas, ViewController $ctrl = null);
 
 }
 
 class ViewHtml extends View
 {
-	public function render(Data $datas, ViewController $ctrl)
+	public function render(Data $datas, ViewController $ctrl = null)
 	{
+		$ctrl = $ctrl ? $ctrl : $this->getViewController();
+
 		$tpl = new PhpTemplate($this->filename(),$datas);
 		$this->tpl->setHost($ctrl);
 		$fn = $this->filename();
@@ -68,11 +82,16 @@ class ViewHtml extends View
 }
 class ViewJson extends View
 {
-	public function render(Data $datas, ViewController $ctrl)
+	public function render(Data $datas, ViewController $ctrl = null)
 	{
+		$ctrl = $ctrl ? $ctrl : $this->getViewController();
+		$r = $ctrl->response();
+		$r->header('scripts',$r->__scripts);
+		$r->header('styles',$r->__styles);
+			
 		//header('Content-Type: application/json; charset=UTF-8');
 		$res = array(
-			'header'=>$ctrl->response()->header(),
+			'header'=>$r->header(),
 			'body'=>$datas->toObject()
 		);
 		return json_encode($res);
@@ -81,8 +100,10 @@ class ViewJson extends View
 
 class ViewXml extends View
 {
-	public function render(Data $datas, ViewController $ctrl)
+	public function render(Data $datas, ViewController $ctrl = null)
 	{
+		$ctrl = $ctrl ? $ctrl : $this->getViewController();
+		
 		header('Content-Type: text/xml; charset=UTF-8');
 		return xmlrpc_encode($datas->toObject());
 	}

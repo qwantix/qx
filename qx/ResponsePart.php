@@ -17,6 +17,17 @@ class ResponsePart
 		return $this->_standalone;
 	}
 
+	private $_encapsulation = null;
+	public function encapsulation()
+	{
+		if(func_num_args() > 0)
+		{;
+			$this->_encapsulation = (string)func_get_arg(0);
+			return $this;
+		}
+		return $this->_encapsulation;
+	}
+
 	private $_standaloneUseParentsDatas = false;
 	public function standaloneUseParentsDatas()
 	{
@@ -208,7 +219,8 @@ class ResponsePart
 	{
 		if(!isset($this->_datas->__scripts))
 			$this->_datas->__scripts = array();
-		$this->_datas->__scripts = $this->_datas->__scripts + array($file);
+		if(!in_array($file, $this->_datas->__scripts))
+			$this->_datas->__scripts = $this->_datas->__scripts + array($file);
 		return $this;
 	}
 
@@ -216,7 +228,8 @@ class ResponsePart
 	{
 		if(!isset($this->_datas->__styles))
 			$this->_datas->__styles = array();
-		$this->_datas->__styles = $this->_datas->__styles + array($file);
+		if(!in_array($file, $this->_datas->__styles))
+			$this->_datas->__styles = $this->_datas->__styles + array($file);
 		return $this;
 	}
 

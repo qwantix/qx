@@ -110,7 +110,7 @@ class Tools
 		return $s;
 	}
 	
-	static public function formatBytes($size)
+	static public function FormatBytes($size)
 	{
 		$units = array(' B', ' KB', ' MB', ' GB', ' TB');
 		for ($i = 0; $size >= 1024 && $i < 4; $i++)
