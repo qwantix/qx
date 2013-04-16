@@ -39,16 +39,18 @@ class Form extends Observable {
 
 	private $_errors = array();
 	private $_fields = array();
-	private $validated = false;
+	private $_datas = array();
+	private $_validated = false;
 	public function __construct(array $fields)
 	{
 		$this->_fields = $fields;
 	}
 
-	public function validate()
+	public function validate($datas = null)
 	{
-		$this->validated = true;
+		$this->_validated = true;
 		$this->_errors = array();
+		$this->_datas = $datas?(array)$datas:$_POST;
 		foreach($this->_fields as $field=>$v)
 			$this->validateField ($field);
 		return empty($this->_errors);
@@ -87,28 +89,45 @@ class Form extends Observable {
 		$opt = (object)$this->_fields[$name];
 		$inst = self::CreateFormField(isset($opt->type)?$opt->type:'default') ;
 		$inst->setOptions($opt);
-		$inst->setValue(Request::Post($name));
+		$inst->setValue(isset($this->_datas[$name])?$this->_datas[$name]:null);
 		$this->_fieldsInst[$name] = $inst;
 		return $inst;
 	}
 
+	/**
+	 * Get if form is valid
+	 * 
+	 * @return bool
+	 */
 	public function isValid()
 	{
-		if(!$this->validated)
+		if(!$this->_validated)
 			$this->validate();
 		return empty($this->_errors);
 	}
-
+	/**
+	 * Get errors
+	 * 
+	 * Return an associative array of errors
+	 * @return array
+	 */
 	public function errors()
 	{
 		return $this->_errors;
 	}
-
+	/**
+	 * Add error in form for specific field
+	 */
 	public function addError($field,$message)
 	{
 		$this->_errors[$field] = $message;
 	}
 	
+	/**
+	 * Opposite to isValid
+	 * 
+	 * @return bool
+	 */
 	public function hasError()
 	{
 		return !$this->isValid();
@@ -213,7 +232,7 @@ class FormTypeDate extends FormTypeDefault {
 	public function validate()
 	{
 		parent::validate();
-		if (!($this->date instanceof \DateTime))
+		if (!$this->isEmpty() && !($this->date instanceof \DateTime))
 			throw new FormException(\__("This field isn't a valid date"));
 		return true;
 	}

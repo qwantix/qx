@@ -30,12 +30,19 @@ class Tools
 
 	/// Class
 	
+	/**
+	 * Get class name without namespace
+	 */
 	static public function ClassName($o)
 	{
 		$toks = explode('\\', is_object($o) ? get_class($o) : $o);
 		return $toks[sizeof($toks) - 1];
 	}
 	
+	/**
+	 * Remove part of namespace
+	 * 
+	 */
 	static public function ShiftNamespace($ns,$class)
 	{
 		return preg_replace ('`^'.preg_quote ($ns).'[\\\\]?`i', '', $class);
@@ -118,15 +125,14 @@ class Tools
 		return round($size, 2) . $units[$i];
 	}
 	
-	static public function CreateUID()
+	static public function CreateUID($entropy_size = 8)
 	{
 		$str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 		$strlen = strlen($str);
 		$out = base_convert(microtime(true),10,36);
-		$size = 8;
-		for($i=0;$i<$size;$i++)
+		for($i=0;$i<$entropy_size;$i++)
 			$out .= $str{mt_rand (0, $strlen-1)};
-		return str_shuffle($out);
+		return $out;
 	}
 
 	/**

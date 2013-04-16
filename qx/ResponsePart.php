@@ -220,7 +220,8 @@ class ResponsePart
 		if(!isset($this->_datas->__scripts))
 			$this->_datas->__scripts = array();
 		if(!in_array($file, $this->_datas->__scripts))
-			$this->_datas->__scripts = $this->_datas->__scripts + array($file);
+			$this->_datas->__scripts = array_merge($this->_datas->__scripts,array($file));
+
 		return $this;
 	}
 
@@ -229,7 +230,7 @@ class ResponsePart
 		if(!isset($this->_datas->__styles))
 			$this->_datas->__styles = array();
 		if(!in_array($file, $this->_datas->__styles))
-			$this->_datas->__styles = $this->_datas->__styles + array($file);
+			$this->_datas->__styles = array_merge($this->_datas->__styles, array($file));
 		return $this;
 	}
 

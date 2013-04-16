@@ -60,7 +60,6 @@ class Response extends Observable
 										->render($data,$ctrl);
 				//Remerge for template modifiction
 				$this->mergeInclusions($part->datas(), $data);
-				
 			}
 			catch(\qx\ViewNotFoundException $e) 
 			{
@@ -99,9 +98,10 @@ class Response extends Observable
 			foreach ($source->__scripts as $v)
 				if(!in_array($v, $a))
 					$a[] = $v;
-			$dest->__scripts = $a;
-			//$dest->__scripts = array_merge($source->__scripts,$dest->__scripts);
+			$dest->__scripts = $source->__scripts = $a;
 		}
+		else
+			$source->__scripts = $dest->__scripts;
 		if(is_array($source->__styles))
 		{
 			if(!is_array($dest->__styles))
@@ -110,9 +110,10 @@ class Response extends Observable
 			foreach ($source->__styles as $v)
 				if(!in_array($v, $a))
 					$a[] = $v;
-			$dest->__styles = $a;
-			//$dest->__styles = array_merge($source->__styles,$dest->__styles);
+			$dest->__styles = $source->__styles = $a;
 		}
+		else
+			$source->__styles = $dest->__styles;
 		return $dest;
 	}
 	

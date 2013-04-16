@@ -28,7 +28,7 @@ class Connection {
 	{
 		$this->dsn = $dsn;
 		$this->pdo = new \PDO($dsn,$username,$password);
-		$this->pdo->setAttribute(\PDO::ATTR_ERRMODE,\PDO::ERRMODE_WARNING);
+		$this->pdo->setAttribute(\PDO::ATTR_ERRMODE,\PDO::ERRMODE_EXCEPTION);
 	}
 
 	public function pdo()
@@ -56,9 +56,14 @@ class Connection {
 	protected function _exec($sqlOrClause, array &$args = null) 
 	{
 		$sql = is_string($sqlOrClause) ? $sqlOrClause : $this->build($sqlOrClause, $args);
-		//var_dump($sql);
 		$sth = $this->pdo->prepare($sql);
-		$sth->execute($args);
+		try {
+			$sth->execute($args);
+		} catch (\Exception $e) {
+			var_dump($sql);
+			throw $e;
+		}
+		
 		//var_dump($args);
 		return $sth;
 	}
@@ -233,7 +238,7 @@ class Connection {
 		if(!empty($clause->where))
 			$sql .= ' WHERE '.$clause->where;
 		if(!empty($clause->groupBy))
-			$sql .= ' GROUP BY '.$clause->groupBy;
+			$sql .= ' GROUP BY '.(is_array($clause->groupBy) ? implode(', ',$clause->groupBy) : $clause->groupBy);
 		if(!empty($clause->having))
 			$sql .= ' HAVING '.$clause->having;
 		if(!empty($clause->orderBy))
@@ -264,7 +269,7 @@ class Connection {
 					else
 					{
 						$argName = ':where_args_'.$n++;
-						$a[] = "`$key` = ".$argName;
+						$a[] = (strpos($key, '`')!==false?$key:"`$key`")." = ".$argName;
 						$args[$argName] = $value;
 					}
 				}

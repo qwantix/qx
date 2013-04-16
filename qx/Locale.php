@@ -11,18 +11,34 @@ namespace qx {
 		{
 			if(!self::$current)
 			{
-				$langs = isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])?$_SERVER['HTTP_ACCEPT_LANGUAGE']:'';
-				foreach(explode(',',$langs) as $l)
-				{
-					list($lang) = explode(';',$l);
-					$ol = new self($lang,false);
+				$langs = Request::GetHeader('Accept-Language',true);
+
+				$setLang = function($lang){
+					$ol = new Locale($lang,false);
 					if(file_exists($ol->filename()))
 					{
 						$ol->load();
-						self::$current = $ol;
+						return $ol;
+					}
+					return null;
+				};
+
+				foreach($langs as $l)
+					if(self::$current = $setLang($l[0]))
 						break;
+				
+				if(!self::$current)
+				{
+					//Safari use only long code with lang-country
+					//so, strip country
+					foreach($langs as $l)
+					{
+						list($l) = explode('-',$l[0]);
+						if(self::$current = $setLang($l))
+							break;
 					}
 				}
+
 				if(!self::$current)
 					self::$current = new self('');
 			}

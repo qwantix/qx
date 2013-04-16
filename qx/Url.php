@@ -20,6 +20,7 @@ class Url
 	static public function FromRoute(Route $routeFrom,$routePath = null,array $args = null)
 	{
 		$scope = $routeFrom->scope();
+		
 		if($routePath)
 		{
 			$path = $routePath;
@@ -40,7 +41,7 @@ class Url
 		{
 			$path = (string)$routeFrom;
 		}
-		if($scope->owner())
+		if($scope && $scope->owner())
 		{
 			$path = $scope->owner()->route() . '.' . $path; 
 			$args = $args ? $args : array();
@@ -75,7 +76,7 @@ class Url
 					if($type == Route::DIR)
 					{
 						if(!isset(self::$_Path2Rte[$currentPath]))
-								{   //Si la route n'est pas en cache
+						{   //Si la route n'est pas en cache
 							$class = Controller::UseController($route->action());
 							self::$_Path2Rte[$currentPath] = $class::RoutesDefinition();
 						}

@@ -7,12 +7,15 @@ namespace qx;
  */
 class ViewController extends Controller
 {
+	/**
+	 * Get routes definition, override this method to add routes
+	 */
 	static public function RoutesDefinition($scope = null)
 	{
 		return Routes::Create($scope);
 	}
 	/**
-	 *
+	 * Get application instance
 	 * @return App
 	 */
 	public function app()
@@ -22,7 +25,7 @@ class ViewController extends Controller
 
 	private $_response;
 	/**
-	 *
+	 * Get response part for this controller
 	 * @return ResponsePart
 	 */
 	public function response()
@@ -35,7 +38,7 @@ class ViewController extends Controller
 	
 	private $_routes;
 	/**
-	 *
+	 * 
 	 * @return Routes 
 	 */
 	public function routes()
@@ -54,6 +57,29 @@ class ViewController extends Controller
 	public function route()
 	{
 		return $this->_route;
+		//return $this->_route ? $this->_route : $this->defaultRoute();
+	}
+	protected function setRoute($r)
+	{
+		if(is_string($r))
+			$r = $this->app()->routes()->findByName($r)->forScope($this);
+		if($r instanceof Route)
+			$this->_route = $r;	
+		return $r;
+	}
+	private $_defaultRoute;
+	public function defaultRoute()
+	{
+		if(!$this->_defaultRoute)
+		{
+			$conf = Config::Of('app');
+			$n = Tools::ShiftNamespace($conf->get('namespace').
+				'\\'.$conf->get('controller.namespace'),get_class($this));
+
+			return $this->routes()->findByName($n);	
+		}
+		return $this->_defaultRoute;
+		
 	}
 	
 	private $_subController;
@@ -62,11 +88,20 @@ class ViewController extends Controller
 		return $this->_subController;
 	}
 	
+	protected function createSubController($name, $datas = null)
+	{
+		$ctrl = self::CreateController($name,$this);
+		$this->_subController = $ctrl;
+		if(!$ctrl)
+			throw new Exception("Controller $handler not found");
+		$ctrl->initController($datas);
+		return $ctrl;
+	}
+
 	public function pathToUrl($routePath = null,array $args = null)
 	{
 		return Url::FromRoute($this->route(), $routePath, $args);
 	}
-
 
 	public function redirectTo($routePath,array $args = null, $permanent = false)
 	{
@@ -91,12 +126,9 @@ class ViewController extends Controller
 			switch ($route->type())
 			{
 				case Route::DIR:
-					$ctrl = self::CreateController($handler,$this);
-					$this->_subController = $ctrl;
-					if(!$ctrl)
-						throw new Exception("Controller $handler not found");
+					$ctrl = $this->createSubController($handler, $route->datas());
 					if($ctrl instanceof ViewController)
-						$ctrl->execController($ctrl, $route->datas());
+						$ctrl->execController($ctrl);
 					else
 						throw new Exception("Controller mustbe an instance of ViewController");
 					break;
@@ -129,11 +161,10 @@ class ViewController extends Controller
 
 	}
 
-	protected function execController(self $ctrl, $args)
+	protected function execController(self $ctrl)
 	{
-		$ctrl->initController($args);
-		$r = call_user_func(array($ctrl,'exec'));
-		return $r;
+
+		return $ctrl->exec();
 	}
 	
 	protected function execAction($action, $args, $mergeDatas = true)
@@ -167,10 +198,12 @@ class ViewController extends Controller
 			->wrapInMain(false)
 			->standalone(true);
 		$datas = array();
-		if(@$_SERVER["CONTENT_TYPE"] == "text/json")
+
+		if(strpos(@$_SERVER["CONTENT_TYPE"], "text/json") !== false)
 			$datas = Request::PostJson();
 		else
 			$datas = $_REQUEST;
+		
 		try {
 			$this->execAction($method,array_merge($args, array($datas)),false);
 		}
@@ -187,6 +220,11 @@ class ViewController extends Controller
 	}
 
 	protected function postCallAction($action,$args,$result)
+	{
+
+	}
+
+	protected function subAction($route, $args)
 	{
 
 	}

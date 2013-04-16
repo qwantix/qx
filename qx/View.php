@@ -88,7 +88,7 @@ class ViewJson extends View
 		$r = $ctrl->response();
 		$r->header('scripts',$r->__scripts);
 		$r->header('styles',$r->__styles);
-			
+		$r->header('location', $_SERVER['REQUEST_URI']);
 		//header('Content-Type: application/json; charset=UTF-8');
 		$res = array(
 			'header'=>$r->header(),

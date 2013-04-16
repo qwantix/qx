@@ -61,9 +61,11 @@ class Routes implements \IteratorAggregate
 		return $this->add(Route::DIR, $controller, $pattern, $controller, $argsDef);
 	}
 
-	public function otherwise($action,array $args = array())
+	public function otherwise($action, $args = array())
 	{
-		$this->_otherwise = new Route(Route::ACTION,$action,null,$args);
+		$this->_otherwise = new Route(Route::ACTION,$action,'',$action);
+		if($args != null && !is_array($args))
+			$args = array($args);
 		$this->_otherwise->setArgs($args);
 		return $this;
 	}
@@ -117,9 +119,21 @@ class Routes implements \IteratorAggregate
 		
 	public function findByName($name)
 	{
-		$name = strtolower($name);  
+		$name = strtolower($name);
 		$name = str_replace(':','\\', $name); //Remplace le : par \, permet d'éviter de nommer les route avec des  \ dans le cas d'utilisation de namespace
-		return isset($this->_index[$name]) ? $this->_index[$name] : null;
+		$routes = $this;
+		$route = null;
+		foreach (explode('.', $name) as $name)
+			if(isset($routes->_index[$name]))
+			{
+				$route =  $routes->_index[$name];
+				$routes = $route->routes();
+			}
+			else
+				return null;
+
+		return $route;
+		//return isset($this->_index[$name]) ? $this->_index[$name] : null;
 	}
 
 	public function hasRoot($name = null)

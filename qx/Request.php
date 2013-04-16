@@ -62,4 +62,19 @@ class Request
 			Url::Redirect(Url::Build(Config::Of('app')->get('csrf_error_route','')));
 		return false;
 	}
+
+	static public function GetHeader($name, $parse = false)
+	{
+		$name = 'HTTP_'.str_replace('-','_' , strtoupper($name));
+		$value = isset($_SERVER[$name])?$_SERVER[$name]:'';
+		if(!$parse)
+			return $value;
+		$out = array();
+		foreach(explode(',',$value) as $tok)
+		{
+			$a = explode(';',$tok);
+			$out[] = $a;
+		}
+		return $out;
+	}
 }

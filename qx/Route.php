@@ -110,6 +110,17 @@ class Route
 		return $this->_parent;
 	}
 	
+	private $_routes;
+	public function routes()
+	{
+		if(!$this->_routes && $this->isDir())
+		{
+			$class = Controller::UseController($this->action());
+			$this->_routes = $class::RoutesDefinition();
+		}
+		return $this->_routes;
+	}
+
 	public function __construct($type, $name, $pattern, $action, array $argsDef = null)
 	{
 		$this->_type = $type;
@@ -223,13 +234,16 @@ class Route
 
 	public function isDir()
 	{
-		return $this->_type == self::DIR;
+		return $this->_type === self::DIR;
 	}
 	public function isAction()
 	{
-		return $this->_type == self::ACTION;
+		return $this->_type === self::ACTION;
 	}
-
+	public function isMethod()
+	{
+		return $this->_type === self::REMOTE_METHOD;
+	}
 	public function __toString()
 	{
 		//On appelle d'abord l'accesseur parent() afin de forcer le calcul du parent
