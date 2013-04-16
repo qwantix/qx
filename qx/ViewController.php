@@ -59,14 +59,22 @@ class ViewController extends Controller
 		return $this->_route;
 		//return $this->_route ? $this->_route : $this->defaultRoute();
 	}
-	protected function setRoute($r)
+
+	protected function setRoute($r, $datas = null)
 	{
+		
 		if(is_string($r))
-			$r = $this->app()->routes()->findByName($r)->forScope($this);
+			$r = $this->app()->routes()
+					->findByName($r)
+					->forScope($this,$r{0} === '.');
+
 		if($r instanceof Route)
-			$this->_route = $r;	
+			$this->_route = $r;
+		if($datas)
+			$this->_route->setDatas($datas);
 		return $r;
 	}
+
 	private $_defaultRoute;
 	public function defaultRoute()
 	{

@@ -58,13 +58,12 @@ class Route
 	 * @param bool $all get datas from parents
 	 * @return stdClass
 	 */
-	public function datas($all = false)
+	public function datas($all = false, $includeSelf = false)
 	{
 		if($all)
 		{
-			if($this->_type == self::DIR)
+			if($this->_type == self::DIR && $includeSelf)
 			{
-				//On récupère directement le parent si c'est un dossier, car la donnée à ce niveau ne nous concerne pas
 				$d = array();
 				$r = $this->parent();
 			}
@@ -83,6 +82,13 @@ class Route
 		return $this->_datas;
 	}
 	
+	public function setDatas($datas, $merge = true)
+	{
+		if(!$merge || !$this->_datas)
+			$this->_datas = new \stdClass();
+		foreach ($datas as $k => $v)
+			$this->_datas->$k = $v;
+	}
 	private $_rest;
 	public function rest()
 	{
@@ -109,7 +115,18 @@ class Route
 			$this->_parent = $this->_scope->owner()->route();
 		return $this->_parent;
 	}
-	
+	private $_customParents = false;
+	public function setParent(self $route = null)
+	{
+		$this->_parent = $route;
+		$this->_customParents = true;
+		return $this;
+	}
+
+	public function isCustomParent()
+	{
+		return $this->_customParents;
+	}
 	private $_routes;
 	public function routes()
 	{
@@ -224,11 +241,12 @@ class Route
 	 * @param object $scope
 	 * @return Route 
 	 */
-	public function forScope(ViewController $scope)
+	public function forScope(ViewController $scope, $autoDefineParent = true)
 	{
 		$r = clone $this;
 		$r->_scope = $scope;
-		$r->_parent = $scope->route(); //Normalement la route n'est pas défini dans le scope à ce moment là...
+		if($autoDefineParent)
+			$r->_parent = $scope->route(); //Normalement la route n'est pas défini dans le scope à ce moment là...
 		return $r;
 	}
 

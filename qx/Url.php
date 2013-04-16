@@ -41,13 +41,19 @@ class Url
 		{
 			$path = (string)$routeFrom;
 		}
+		
 		if($scope && $scope->owner())
 		{
-			$path = $scope->owner()->route() . '.' . $path; 
+			//$path = $scope->owner()->route() . '.' . $path; 
+			$path = $scope->route()->parent() . '.' . $path; 
+
 			$args = $args ? $args : array();
 			$args = array_merge((array)$routeFrom->datas(true),$args);
+			
 			$scope = $scope->app();
 		}
+		
+		
 		$path = strtolower($path);
 		$url = '';
 		if(!isset(self::$_Path2Url[$path]))
@@ -105,6 +111,7 @@ class Url
 		{   //On récupère l'url du cache
 			$url = self::$_Path2Url[$path];
 		}
+		
 		//Paramètres
 		$get = array();
 		if(!empty($args))
@@ -115,6 +122,8 @@ class Url
 				if($c == 0)
 					$get[$k] = $v; 
 			}
+			//Replace empty number
+			$url = preg_replace('([#][\w]+)', '0', $url);
 		}
 
 		if(!empty($get))

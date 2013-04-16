@@ -124,14 +124,22 @@ class Routes implements \IteratorAggregate
 		$routes = $this;
 		$route = null;
 		foreach (explode('.', $name) as $name)
+		{
+			
 			if(isset($routes->_index[$name]))
 			{
-				$route =  $routes->_index[$name];
+				$route = $routes->_index[$name]->setParent($route);
 				$routes = $route->routes();
+			}
+			else if($routes->hasRoot($name))
+			{
+				$route = $routes->_root->setParent($route);
 			}
 			else
 				return null;
-
+			
+			
+		}
 		return $route;
 		//return isset($this->_index[$name]) ? $this->_index[$name] : null;
 	}
