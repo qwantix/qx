@@ -103,9 +103,11 @@ class ResponsePart
 		return $this->_view ? $this->_view : ($this->_action ? $this->_action : 'default');
 	}
 
-	public function createView($type = null)
+	public function createView($type = null, $name = null)
 	{
-		$view = $this->viewDir() . $this->view();
+		if(!$name)
+			$name = $this->view();
+		$view = $this->viewDir() . $name;
 		if(!$type)
 			$type = $this->type();
 		return View::Create($view, $type);

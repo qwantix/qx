@@ -137,8 +137,6 @@ class Routes implements \IteratorAggregate
 			}
 			else
 				return null;
-			
-			
 		}
 		return $route;
 		//return isset($this->_index[$name]) ? $this->_index[$name] : null;

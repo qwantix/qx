@@ -236,4 +236,9 @@ class ViewController extends Controller
 	{
 
 	}
+
+	protected function createComponent($name)
+	{
+		return Component::CreateComponent($name, $this);
+	}
 }

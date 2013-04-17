@@ -28,9 +28,13 @@ abstract class View {
 	////////////////
 	
 	protected $name;
+	private $rootViewDir;
 	protected function __construct($name)
 	{
 		$this->name = $name;
+		$this->rootViewDir = Config::Of('app')->get('root').
+								DIRECTORY_SEPARATOR.
+								Config::Of('app')->get('views');
 	}
 
 	protected $controller;
@@ -44,12 +48,22 @@ abstract class View {
 		return $this->controller;
 	}
 	
-
-	protected function filename($ext = '.html')
+	public function exists()
 	{
-		return Config::Of('app')->get('root').
-			DIRECTORY_SEPARATOR.
-			Config::Of('app')->get('views').
+		return file_exists($this->filename());
+	}
+
+	public function getRootViewDir()
+	{
+		return $this->rootViewDir;
+	}
+	public function setRootViewDir($dir)
+	{
+		$this->rootViewDir = $dir;
+	}
+	public function filename($ext = '.html')
+	{
+		return $this->rootViewDir.
 			DIRECTORY_SEPARATOR.
 			"$this->name$ext";
 	}
@@ -63,11 +77,12 @@ class ViewHtml extends View
 	public function render(Data $datas, ViewController $ctrl = null)
 	{
 		$ctrl = $ctrl ? $ctrl : $this->getViewController();
-
-		$tpl = new PhpTemplate($this->filename(),$datas);
-		$this->tpl->setHost($ctrl);
 		$fn = $this->filename();
-		if(file_exists($fn))
+
+		$tpl = new PhpTemplate($fn,$datas);
+		$this->tpl->setHost($ctrl);
+		
+		if($this->exists())
 		{
 			header('Content-Type: text/html; charset=UTF-8');
 			ob_start();
@@ -82,6 +97,11 @@ class ViewHtml extends View
 }
 class ViewJson extends View
 {
+
+	public function exists()
+	{
+		return true;
+	}
 	public function render(Data $datas, ViewController $ctrl = null)
 	{
 		$ctrl = $ctrl ? $ctrl : $this->getViewController();
@@ -100,6 +120,11 @@ class ViewJson extends View
 
 class ViewXml extends View
 {
+	public function exists()
+	{
+		return true;
+	}
+
 	public function render(Data $datas, ViewController $ctrl = null)
 	{
 		$ctrl = $ctrl ? $ctrl : $this->getViewController();

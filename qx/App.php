@@ -58,9 +58,15 @@ class App extends ViewController
 			->set('wwwroot', '')
 			->set('namespace', 'app')
 			->set('controller.namespace', 'controllers')
+			
 			->set('views', 'views')
 			->set('view.namespace', '')
+
 			->set('view.mainName', 'main')
+
+			->set('components', 'components')
+			->set('component.namespace', 'components')
+			
 			->set('db.dsn', '')
 		;
 		
