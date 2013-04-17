@@ -307,4 +307,12 @@ class ObjectModel extends Observable
 		$pk = @$this->get_primaryKey();
 		return get_class($this).'('.(is_array($pk)?implode(',',$pk):$pk).')';
 	}
+	
+	/**
+	 * Session object for this object
+	 */
+	public function session()
+	{
+		return Session::Of($this, $this->id);
+	}
 }
