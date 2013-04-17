@@ -45,6 +45,8 @@ class Tools
 	 */
 	static public function ShiftNamespace($ns,$class)
 	{
+		if(is_object($class))
+			$class = get_class($class);
 		return preg_replace ('`^'.preg_quote ($ns).'[\\\\]?`i', '', $class);
 	}
 
