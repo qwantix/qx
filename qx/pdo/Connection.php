@@ -10,17 +10,26 @@ class Connection {
 	 *
 	 * @var PDO 
 	 */
-
 	static private $_Current;
 	static public function Current()
 	{
 		if(!self::$_Current)
-		{
-			$conf = \qx\Config::Of('app');
-			self::$_Current = new self($conf->get('db.dsn'),$conf->get('db.username'),$conf->get('db.password')); 
-		}
+			self::$_Current = self::Get('');
 		return self::$_Current;
 	}
+
+	static private $_Connections = array();
+	static public function Get($name)
+	{
+		if(!isset(self::$_Connections[$name]))
+		{
+			$conf = \qx\Config::Of('app');
+			$key = !empty($name) ? '.'.$name : '';
+			self::$_Connections[$name] = new self($conf->get("db$key.dsn"),$conf->get("db$key.username"),$conf->get("db$key.password")); 
+		}
+		return self::$_Connections[$name];
+	}
+
 
 	private $pdo;
 	private $dsn;

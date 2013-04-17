@@ -7,9 +7,10 @@ namespace qx\pdo;
 class ObjectModel extends \qx\ObjectModel
 {
 	protected $connection;
+	protected $connectionName;
 	public function __construct($datas = null)
 	{
-		$this->connection = Connection::Current();
+		$this->connection = $this->connectionName ? Connection::Get($this->connectionName) : Connection::Current();
 		parent::__construct($datas);
 	}
 	public function q()
