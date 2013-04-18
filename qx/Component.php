@@ -68,6 +68,11 @@ class Component extends Observable {
 		return $this->_owner;
 	}
 	
+	protected function setOwner(ViewController $owner = null)
+	{
+		$this->_owner = $owner;
+	}
+
 	public function response()
 	{
 		return $this->owner()->response();

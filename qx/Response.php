@@ -39,7 +39,7 @@ class Response extends Observable
 		$viewMainName = $conf->get('view.mainName');
 
 		$out = '';
-
+		
 		foreach($this->_parts as $depth => $part)
 		{
 			$ns = $part->ns();
@@ -58,14 +58,14 @@ class Response extends Observable
 			{
 				$data->$ns = $out = $part->createView()
 										->render($data,$ctrl);
-				//Remerge for template modifiction
-				$this->mergeInclusions($part->datas(), $data);
 			}
 			catch(\qx\ViewNotFoundException $e) 
 			{
 
 			}
 
+			//Remerge for template modifiction
+			$this->mergeInclusions($part->datas(), $data);
 			
 			if($part->wrapInMain())
 			{

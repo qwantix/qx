@@ -96,13 +96,17 @@ class ViewController extends Controller
 		return $this->_subController;
 	}
 	
-	protected function createSubController($name, $datas = null)
+	public function createSubController($name, $datas = null, $route  = null, $useSameResponseObject = false)
 	{
 		$ctrl = self::CreateController($name,$this);
 		$this->_subController = $ctrl;
 		if(!$ctrl)
 			throw new Exception("Controller $handler not found");
+		if($useSameResponseObject)
+			$ctrl->_response = $this->response()->createSubResponse($ctrl);
 		$ctrl->initController($datas);
+		if($route)
+			$ctrl->setRoute($route,$datas);
 		return $ctrl;
 	}
 

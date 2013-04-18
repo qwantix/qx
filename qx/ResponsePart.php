@@ -243,6 +243,13 @@ class ResponsePart
 		$this->_privateDatas = new Data;
 	}
 	
+	public function createSubResponse(ViewController $ctrl)
+	{
+		$r = new self($ctrl);
+		$r->_datas = $this->_datas;
+		$r->_privateDatas = $this->_privateDatas;
+		return $r;
+	}
 	
 	
 	public function __set($name, $value)
