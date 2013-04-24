@@ -1,9 +1,9 @@
 <?php
-namespace qx;
+namespace qx\db;
 /**
  * @author Brice Dauzats
  */
-class ObjectModel extends Observable 
+class ObjectModel extends \qx\Observable 
 {
 
 	protected $_fields = array();
@@ -43,7 +43,7 @@ class ObjectModel extends Observable
 		if(in_array($name, $this->_fields))
 			return method_exists($this, $this->_get_prefix.$name) ?
 				 $this->{$this->_get_prefix.$name}() : 
-				 (isset($this->_datas[$name])?$this->_datas[$name]:null);
+				 $this->get_field($name);
 		else if(isset($this->_foreignsTables[$name]))
 			return $this->getForeignObject($name);
 		return  null;
@@ -59,7 +59,7 @@ class ObjectModel extends Observable
 			else
 				$this->set_field($name, $value);
 
-			if($lastValue !== $this->_datas[$name])
+			if(isset($this->_datas[$name]) && $lastValue !== $this->_datas[$name])
 				$this->setModified($name);
 		}
 	}
@@ -218,7 +218,10 @@ class ObjectModel extends Observable
 		
 		$this->_datas[$name] = $value;
 	}
-
+	protected function get_field($name)
+	{
+		return isset($this->_datas[$name])?$this->_datas[$name]:null;
+	}
 	public function fetch()
 	{
 		throw new Exception("Override fetch method!");
@@ -228,12 +231,10 @@ class ObjectModel extends Observable
 	{
 		if($force)
 			$this->_modifiedFields = (array)$this->_fields;
-		if(empty($this->_modifiedFields)) 
-			return;
-		if($this->exists())
-			$this->update();
-		else
+		if(!$this->exists())
 			$this->insert();
+		else if(!empty($this->_modifiedFields))
+			$this->update();
 	}
 
 	public function update()
@@ -253,7 +254,7 @@ class ObjectModel extends Observable
 
 	public function exists()
 	{
-		return in_array('id', $this->_fields) ? !empty($this->id) : false; //XXX
+		return in_array('id', $this->_fields) ? $this->id>0 : false; //XXX
 	}
 
 	public function modifiedDatas()

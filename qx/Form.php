@@ -238,3 +238,24 @@ class FormTypeDate extends FormTypeDefault {
 	}
 }
 Form::RegisterFormType('date', '\\qx\\FormTypeDate');
+
+class FormTypeTime extends FormTypeDefault {
+	private $date;
+	public function setValue($value)
+	{
+		parent::setValue($value);
+		$this->time = \DateTime::createFromFormat( __('@time_format') , $this->value);
+	}
+	public function getValue()
+	{
+		return $this->time;
+	}
+	public function validate()
+	{
+		parent::validate();
+		if (!$this->isEmpty() && !($this->time instanceof \DateTime))
+			throw new FormException(\__("This field isn't a valid date"));
+		return true;
+	}
+}
+Form::RegisterFormType('time', '\\qx\\FormTypeTime');

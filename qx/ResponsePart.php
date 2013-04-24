@@ -211,11 +211,11 @@ class ResponsePart
 	public function addError($errMsg, $errDetail = null)
 	{
 		$this->isError(true);
-		$a = $this->header('error');
+		$a = $this->header('errors');
 		if(!$a)
 			$a = array();
 		$a[] = array($errMsg, $errDetail);
-		$this->header('error',$a);
+		$this->header('errors',$a);
 	}
 	public function addScript($file)
 	{

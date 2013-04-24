@@ -122,9 +122,9 @@ class Url
 				if($c == 0)
 					$get[$k] = $v; 
 			}
-			//Replace empty number
-			$url = preg_replace('([#][\w]+)', '0', $url);
 		}
+		//Replace empty number arguments
+		$url = preg_replace('([#][\w]+)', '0', $url);
 
 		if(!empty($get))
 			$url .= '?'.http_build_query($get); //Sera mis à jour en http_build_query($get,null,null,PHP_QUERY_RFC3986)

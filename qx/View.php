@@ -31,10 +31,17 @@ abstract class View {
 	private $rootViewDir;
 	protected function __construct($name)
 	{
-		$this->name = $name;
-		$this->rootViewDir = Config::Of('app')->get('root').
+		
+		if($name{0} === '@')
+		{
+			$name = preg_replace('/^@/','', $name);
+			$this->rootViewDir = '.';
+		}
+		else
+			$this->rootViewDir = Config::Of('app')->get('root').
 								DIRECTORY_SEPARATOR.
 								Config::Of('app')->get('views');
+		$this->name = $name;
 	}
 
 	protected $controller;

@@ -17,7 +17,7 @@ require_once 'qx/Controller.php';
 require_once 'qx/ViewController.php';
 require_once 'qx/App.php';
 
-require_once 'qx/ObjectModel.php';
+require_once 'qx/db/ObjectModel.php';
 
 require_once 'qx/Data.php';
 require_once 'qx/Session.php';

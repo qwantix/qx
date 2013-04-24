@@ -1,5 +1,5 @@
 <?php
-namespace qx\pdo;
+namespace qx\db\pdo;
 
 /**
  *
@@ -72,7 +72,7 @@ class Connection {
 			var_dump($sql);
 			throw $e;
 		}
-		
+		//var_dump($sql);
 		//var_dump($args);
 		return $sth;
 	}
@@ -83,7 +83,7 @@ class Connection {
 		{
 			if(is_object($class))
 				$class = get_class($class);
-			return $sth->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $class);
+			return $sth->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $class, array());
 		}
 		else
 			return $sth->fetchAll(\PDO::FETCH_OBJ);
@@ -260,7 +260,7 @@ class Connection {
 		return $sql;
 	}
 
-	private function buildWhereClose($w, &$args, &$n = 0, $depth = 0)
+	public function buildWhereClose($w, &$args, &$n = 0, $depth = 0)
 	{
 		if(is_array($w))
 		{
@@ -274,6 +274,10 @@ class Connection {
 					if(is_array($value))
 					{
 						$a[] = $key . ' IN('.implode(',',array_map('intval',$value)).')';
+					}
+					else if($value === null)
+					{
+						$a[] = $key . ' IS NULL';
 					}
 					else
 					{
@@ -312,6 +316,7 @@ class Connection {
 		);
 	}
 
+	
 	public function mergeClauses($c1,$c2, array $overrides = array())
 	{
 		$c1 = (object)$c1;
@@ -376,22 +381,66 @@ class Connection {
 		return mktime($h,$i,$s,$m,$d,$y);
 	}
 
-	public function rebuildTree($table, $field = 'parent_id')
+	public function rebuildTree($table, $field = 'parent_id', $sort = null, $groupBy = null)
 	{
-		$this->_rebuildTree($table, $field);
+		if($groupBy)
+		{
+			if(!is_array($groupBy))
+				$groupBy = array($groupBy);
+			foreach($this->select("SELECT `".implode('`,`',$groupBy)."` FROM `$table` GROUP BY `".implode('`,`',$groupBy).'`') as $r)
+			{
+				$cond = array();
+				foreach ($groupBy as $f)
+					$cond[$f] = $r->$f;
+				$this->_rebuildTree($table, $field, $sort, $cond);
+			}
+		}
+		else
+			$this->_rebuildTree($table, $field, $sort);
 	}
 
-	private function _rebuildTree($table, $field, $id = null, $ft = 0)
+	private function _rebuildTree($table, $field, $sort = null, $cond = null,  $id = null, $ft = 0)
 	{
 		$gt = $ft + 1;
-		$sth = $this->_exec("SELECT id FROM `$table` WHERE $field ".($id?'= '.$id:'IS NULL'));
-		$ids = $sth->fetchAll(\PDO::FETCH_OBJ);
+		$args = array();
+		$q = "SELECT id FROM `$table` WHERE $field ";
+		if($id)
+		{
+			$q .= '= ?';
+			$args[] = $id;
+		}
+		else
+			$q .= 'IS NULL';
+
+		if($cond)
+			foreach ($cond as $key => $value)
+			{
+				$q .= " AND `$key` = ? ";
+				$args[] = $value;
+			}
+		if($sort)
+			$q .= ' ORDER BY '.$sort;
+		$ids = $this->select($q,$args);
 		foreach ($ids as $r)
-			$gt = $this->_rebuildTree($table, $field, $r->id, $gt);
+			$gt = $this->_rebuildTree($table, $field, $sort, $cond, $r->id, $gt);
 		
 		
 		$this->exec("UPDATE `$table` SET lft = ?, rgt = ? WHERE id = ?", array($ft,$gt,$id));
 		return $gt + 1;
+	}
+
+
+	static public function IsClause($q)
+	{
+		return empty($q) 
+			|| isset($q['where']) 
+			|| isset($q['from']) 
+			|| isset($q['select']) 
+			|| isset($q['join'])
+			|| isset($q['limit'])
+			|| isset($q['groupBy'])
+			|| isset($q['orderBy'])
+		;
 	}
 }
 

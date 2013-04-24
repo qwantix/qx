@@ -1,10 +1,10 @@
 <?php
-namespace qx\pdo;
+namespace qx\db\pdo;
 
 /**
  * @author Brice Dauzats
  */
-class ObjectModel extends \qx\ObjectModel
+class ObjectModel extends \qx\db\ObjectModel
 {
 	protected $connection;
 	protected $connectionName;
@@ -16,6 +16,10 @@ class ObjectModel extends \qx\ObjectModel
 	public function q()
 	{
 		return $this->connection->createClause($this->connection->table($this->tableName()));
+	}
+	public function connection()
+	{
+		return $this->connection;
 	}
 	public function fetch($filters = null)
 	{
@@ -60,10 +64,7 @@ class ObjectModel extends \qx\ObjectModel
 	static public function Find(array $q = array(),$args = null)
 	{
 		$cls = get_called_class();
-		if(!empty($q) && !isset($q['where']) 
-			&& !isset($q['from']) 
-			&& !isset($q['select']) 
-			&& !isset($q['join']))
+		if(!Connection::IsClause($q))
 			$q['where'] = $q;
 		$o = new $cls();
 		if(!isset($q['from']))
@@ -76,6 +77,7 @@ class ObjectModel extends \qx\ObjectModel
 	}
 	static public function FindOne(array $q = array(), $args = null)
 	{
+		//	$q['limit'] = array('0','1');
 		$a = self::Find($q, $args);
 		return count($a)?$a[0]:null;
 	}

@@ -1,5 +1,5 @@
 <?php
-namespace qx\pdo;
+namespace qx\db\pdo;
 
 /**
  * @author Brice Dauzats
@@ -8,7 +8,6 @@ class MysqlObjectModel extends ObjectModel {
 	public function __construct($datas = null)
 	{
 		parent::__construct($datas);
-		
 	}
 	protected function init($datas = null)
 	{
@@ -54,7 +53,7 @@ class MysqlObjectModel extends ObjectModel {
 				'enum' => 'string'
 			);
 
-			$st = $this->connection->exec("DESCRIBE ".$this->tableName());
+			$st = $this->connection->exec("DESCRIBE `".$this->tableName()."`");
 			$columns = array();
 			$primary = array();
 			while ($o = $st->fetchObject())
