@@ -87,7 +87,7 @@ class Url
 							self::$_Path2Rte[$currentPath] = $class::RoutesDefinition();
 						}
 						$routes = self::$_Path2Rte[$currentPath];
-						$url .= $route->pattern().'/';
+						$url .= $route->pattern();
 								self::$_Path2Url[$currentPath] = $url; //On stocke l'url intermediaire
 								continue;
 					}

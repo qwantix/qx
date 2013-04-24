@@ -58,6 +58,8 @@ class Routes implements \IteratorAggregate
 
 	public function dir($pattern, $controller ,array $argsDef = null, $routeName = null)
 	{
+		if(strpos($pattern, '/') === false)
+			$pattern .= '/';
 		return $this->add(Route::DIR, $routeName?$routeName:$controller, $pattern, $controller, $argsDef);
 	}
 
