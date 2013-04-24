@@ -42,23 +42,23 @@ class Routes implements \IteratorAggregate
 		return $this;
 	}
 
-	public function action($pattern, $method = null,array $argsDef = null)
+	public function action($pattern, $method = null,array $argsDef = null, $routeName = null)
 	{
 		if(empty($method))
 			$method = preg_replace('`[^\w]`', '', $pattern);
-		return $this->add(Route::ACTION, $method, $pattern, $method, $argsDef);
+		return $this->add(Route::ACTION, $routeName?$routeName:$method, $pattern, $method, $argsDef);
 	}
 
-	public function method($name, $method = null, array $argsDef = null)
+	public function method($name, $method = null, array $argsDef = null, $routeName = null)
 	{
 		if(empty($method))
 			$method = preg_replace('`[^\w]`', '', $name);
-		return $this->add(Route::REMOTE_METHOD, $method, $name, $method, $argsDef);
+		return $this->add(Route::REMOTE_METHOD, $routeName?$routeName:$method, $name, $method, $argsDef);
 	}
 
-	public function dir($pattern, $controller ,array $argsDef = null)
+	public function dir($pattern, $controller ,array $argsDef = null, $routeName = null)
 	{
-		return $this->add(Route::DIR, $controller, $pattern, $controller, $argsDef);
+		return $this->add(Route::DIR, $routeName?$routeName:$controller, $pattern, $controller, $argsDef);
 	}
 
 	public function otherwise($action, $args = array())
