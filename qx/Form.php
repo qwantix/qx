@@ -52,11 +52,18 @@ class Form extends Observable {
 		$this->_errors = array();
 		$this->_datas = $datas?(array)$datas:$_POST;
 		foreach($this->_fields as $field=>$v)
+		{
+			if(	isset($this->_fields[$field]) 
+				&& array_key_exists('autoValidate', $this->_fields[$field])
+				&& $this->_fields[$field]['autoValidate'] == false )
+				continue;
+			
 			$this->validateField ($field);
+		}
 		return empty($this->_errors);
 	}
 
-	protected function validateField($field)
+	public function validateField($field)
 	{
 		try {
 			$this->field($field)->validate();
@@ -181,7 +188,7 @@ class FormTypeInt extends FormTypeDefault {
 	public function validate()
 	{
 		parent::validate();
-		if (!is_numeric($this->value))
+		if (!$this->isEmpty() && !is_numeric($this->value))
 			throw new FormException(\__("This field isn't a valid number"));
 		return true;
 	}
@@ -196,7 +203,7 @@ class FormTypeFloat extends FormTypeDefault {
 	public function validate()
 	{
 		parent::validate();
-		if (!is_numeric($this->value))
+		if (!$this->isEmpty() && !is_numeric($this->value))
 			throw new FormException(\__("This field isn't a valid number"));
 		return true;
 	}
@@ -211,7 +218,7 @@ class FormTypeEmail extends FormTypeDefault {
 	public function validate()
 	{
 		parent::validate();
-		if (!preg_match('`^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}$`i', $this->value))
+		if (!$this->isEmpty() && !preg_match('`^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}$`i', $this->value))
 			throw new FormException(__("This field isn't a valid email"));
 		return true;
 	}
@@ -259,3 +266,20 @@ class FormTypeTime extends FormTypeDefault {
 	}
 }
 Form::RegisterFormType('time', '\\qx\\FormTypeTime');
+
+class FormTypeUrl extends FormTypeDefault {
+	public function getValue()
+	{
+		return $this->value;
+	}
+	public function validate()
+	{
+		parent::validate();
+		if (!$this->isEmpty() && !preg_match('`^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$`i', $this->value))
+			throw new FormException(__("This field isn't a valid url format"));
+		/*else if(get_headers($this->value) === false)
+			throw new FormException(__("This url is invalid"));*/
+		return true;
+	}
+}
+Form::RegisterFormType('url', '\\qx\\FormTypeUrl');
