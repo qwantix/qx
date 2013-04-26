@@ -47,14 +47,20 @@ class ObjectModel extends \qx\db\ObjectModel
 	}
 	public function update()
 	{
-		$this->connection->update($this->tableName(),$this->modifiedDatas() ,$this->get_primaryKey(true));
-		$this->clearModifications();
+		$data = $this->modifiedDatas();
+		if(!empty($data))
+		{
+			$this->connection->update($this->tableName(),$data ,$this->get_primaryKey(true));
+			$this->clearModifications();
+		}
 	}
 	public function insert()
 	{
 		$this->connection->insert($this->tableName(),$this->modifiedDatas());
 		if(is_string($this->_primaryKey) && $this->_fieldsDefinitions[$this->_primaryKey]['ai'])
+		{
 			$this->set_primaryKey($this->connection->pdo()->lastInsertId());
+		}
 	}
 	public function delete()
 	{
