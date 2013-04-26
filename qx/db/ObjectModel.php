@@ -58,7 +58,6 @@ class ObjectModel extends \qx\Observable
 				$this->_datas[$name] = $this->{$this->_set_prefix.$name}($value);
 			else
 				$this->set_field($name, $value);
-
 			if(isset($this->_datas[$name]) && $lastValue !== $this->_datas[$name])
 				$this->setModified($name);
 		}
@@ -96,6 +95,7 @@ class ObjectModel extends \qx\Observable
 		foreach ($this->_fields as $f)
 			if(isset($datas->$f) && $this->$f !== $datas->$f)
 				$this->$f = $datas->$f;
+			
 		if($isInit)
 			$this->clearModifications();
 		return $this;
@@ -233,7 +233,7 @@ class ObjectModel extends \qx\Observable
 			$this->_modifiedFields = (array)$this->_fields;
 		if(!$this->exists())
 			$this->insert();
-		else if(!empty($this->_modifiedFields))
+		else
 			$this->update();
 	}
 
