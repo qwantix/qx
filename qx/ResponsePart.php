@@ -239,6 +239,8 @@ class ResponsePart
 	public function __construct(ViewController $ctrl)
 	{
 		$this->_controller = $ctrl;
+		if($ctrl->owner())
+			$this->_type = $ctrl->owner()->response()->_type;
 		$this->_datas = new Data;
 		$this->_privateDatas = new Data;
 	}
