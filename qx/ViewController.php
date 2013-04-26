@@ -14,6 +14,16 @@ class ViewController extends Controller
 	{
 		return Routes::Create($scope);
 	}
+
+	/**
+	 * Return class name without view controller namespace
+	 */
+	static public function ShiftNamespace($cls)
+	{
+		$conf = Config::Of('app');
+		return Tools::ShiftNamespace($conf->get('namespace').
+			'\\'.$conf->get('controller.namespace'),$cls);
+	}
 	/**
 	 * Get application instance
 	 * @return App
