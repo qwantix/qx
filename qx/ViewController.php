@@ -81,7 +81,7 @@ class ViewController extends Controller
 		if($r instanceof Route)
 			$this->_route = $r;
 		if($datas)
-			$this->_route->setDatas($datas);
+			$this->_route->computeDatas((array)$datas);
 		return $r;
 	}
 
@@ -138,36 +138,66 @@ class ViewController extends Controller
 
 	public function exec()
 	{
-		$uri = $this->owner() ? $this->owner()->_route : null;
-		$route = $this->routes()->match($uri);
+		
+		if(!$this->_route)
+		{
+			$uri = $this->owner() ? $this->owner()->_route : null;
+			$route = $this->routes()->match($uri);
+		}
+		else
+			$route = $this->_route;
+
 		if($route)
 		{
 			$this->_route = $route;
 			$this->preExec();
-			$handler = $route->action();
-			switch ($route->type())
-			{
-				case Route::DIR:
-					$ctrl = $this->createSubController($handler, $route->datas());
-					if($ctrl instanceof ViewController)
-						$ctrl->execController($ctrl);
-					else
-						throw new Exception("Controller mustbe an instance of ViewController");
-					break;
-				case Route::ACTION:
-					$this->execAction($handler, $route->args());
-					break;
-				case Route::REMOTE_METHOD:
-					$this->execRemoteMethod($handler, $route->args());
-					break;
-			}
+			$this->execRoute($route);
 			$this->app()->mainResponse()->append($this->response());
 			$this->postExec();
 			return true;
 		}
 		return false;
 	}
-
+	protected function execRoute(Route $route, $subRoute = null, $isSubRoute = false)
+	{	
+		
+		$handler = $route->action();
+		switch ($route->type())
+		{
+			case Route::DIR:
+				$ctrl = $this->createSubController($handler, $route->datas());
+				if($ctrl instanceof ViewController)
+				{
+					if($isSubRoute)
+						$ctrl->setRoute( $route->forScope($ctrl) );
+					
+					$ctrl->execController($ctrl);
+					if(!empty($subRoute))
+					{
+						$ctrl->execSubRoute($subRoute, (array)$route->datas());
+						$this->app()->mainResponse()->append($ctrl->response());
+					}
+					
+					$r = $ctrl->response();
+				}
+				else
+					throw new Exception("Controller must be an instance of ViewController");
+				break;
+			case Route::ACTION:
+				if($isSubRoute)
+					$this->setRoute( $route->forScope($this) );
+				$this->execAction($handler, $route->args());
+				$r = $this->response();
+				break;
+			case Route::REMOTE_METHOD:
+				if($isSubRoute)
+					$this->setRoute( $route->forScope($this) );
+				$this->execRemoteMethod($handler, $route->args());
+				$r = $this->response();
+				break;
+		}
+		return $r;
+	}
 	protected function preExec()
 	{
 
@@ -191,12 +221,31 @@ class ViewController extends Controller
 	
 	protected function execAction($action, $args, $mergeDatas = true)
 	{
-		$handler = array($this,$action);
+		if(strpos($action, '.') !== false)
+			$action = explode('.', $action);
+		
+		if(is_array($action))
+		{
+			if(is_string($action[0]))
+			{
+				$action[0] = $this->createSubController($action[0],$this->route()->datas());
+			}
+			if($action[0] instanceof ViewController)
+			{
+				$this->execController($action[0]);
+				return;
+			}
+			else
+				throw new Exception("Controller must be an instance of ViewController");
+
+			$handler = $action;
+		}
+		else
+			$handler = array($this,$action);
 		$result = false;
 		if(is_callable($handler))
 		{
 			$this->response()->action($action);
-
 			if($this->preCallAction($action, $args) !== false)
 			{
 				$result = call_user_func_array($handler,$args);
@@ -225,7 +274,6 @@ class ViewController extends Controller
 			$datas = Request::PostJson();
 		else
 			$datas = $_REQUEST;
-		
 		try {
 			$this->execAction($method,array_merge($args, array($datas)),false);
 		}
@@ -254,5 +302,21 @@ class ViewController extends Controller
 	protected function createComponent($name)
 	{
 		return Component::CreateComponent($name, $this);
+	}
+
+	protected function execSubRoute($routeName,array $datas = null, $fromRoot = false)
+	{
+		$routeName = is_string($routeName) ? explode('.', $routeName) : $routeName;
+		$o = $fromRoot?$this->app():$this;
+		if($datas == null)
+		{
+			$datas = $this->route() ? $this->route()->datas() : array();
+		}
+		if($r = $o->routes()->findByName(array_shift($routeName)))
+		{
+			$r->computeDatas($datas);
+			$response = $this->execRoute($r, $routeName, true);
+			return $response;
+		}
 	}
 }
