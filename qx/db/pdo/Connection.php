@@ -69,7 +69,7 @@ class Connection {
 		try {
 			$sth->execute($args);
 		} catch (\Exception $e) {
-			var_dump($sql);
+			var_dump($sql,$args);
 			throw $e;
 		}
 		//var_dump($sql);
@@ -292,11 +292,15 @@ class Connection {
 			{
 				$a = array();
 				foreach($w as $c)
-					$a[] = $this->buildWhereClose($c, $args, $n, $depth+1);
+				{
+					$ww = $this->buildWhereClose($c, $args, $n, $depth+1);
+					if($ww)
+						$a[] = $ww;
+				}
 				$w = $a;
+				
 			}
-			//var_dump($clause->where);
-			$w = '('.implode(') AND (',$w).')';
+			$w = !empty($w) ?  count($w)>0 ? '('.implode(') AND (',$w).')' : $w : '';
 		}
 		if($depth == 0)
 			$w = !empty($w) ? is_array($w) ? '('.implode(') AND (',$w).')' : $w : '';
@@ -334,7 +338,10 @@ class Connection {
 					$c1->$part = array($c1->$part);
 				if(!is_array($c2->$part))
 					$c2->$part = array($c2->$part);
-				$c->$part = array_merge($c1->$part,$c2->$part);
+				if($part == 'where')
+					$c->$part = array($c1->$part, $c2->$part);
+				else
+					$c->$part = array_merge($c1->$part,$c2->$part);
 			}
 			else if(isset($c1->$part))
 				$c->$part = $c1->$part;
