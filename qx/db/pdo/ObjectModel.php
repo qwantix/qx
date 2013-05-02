@@ -109,4 +109,20 @@ class ObjectModel extends \qx\db\ObjectModel
 			$count[0]->c
 		);
 	}
+	static public function Count(array $q = array(), $args = null)
+	{
+		$cls = get_called_class();
+		$o = new $cls();
+		if(!isset($q['from']))
+			$q['from'] = $o->connection->table($o->tableName());
+		$q = $o->connection->mergeClauses($o->defaultClause(), $q);
+		$count = $o->connection->select('SELECT COUNT(1) c FROM ('.$o->connection->build($q,$args).') t',$args);
+		return $count[0]->c;
+	}
+	static public function DeleteAll($filters = null)
+	{
+		$cls = get_called_class();
+		$o = new $cls();
+		$o->connection->delete($o->tableName(), $filters);
+	}
 }
