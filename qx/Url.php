@@ -24,7 +24,6 @@ class Url
 		if($routePath)
 		{
 			$path = $routePath;
-
 			if($path{0} === '.')
 			{
 				$path = substr($path, 1);
@@ -46,13 +45,12 @@ class Url
 		{
 			//$path = $scope->owner()->route() . '.' . $path; 
 			$path = $scope->route()->parent() . '.' . $path; 
-
+			
 			$args = $args ? $args : array();
 			$args = array_merge((array)$routeFrom->datas(true),$args);
 			
 			$scope = $scope->app();
 		}
-		
 		
 		$path = strtolower($path);
 		$url = '';
@@ -76,20 +74,26 @@ class Url
 				}
 				$tokLower = strtolower($tok);
 				$route = $routes->findByName($tok);
+				
 				if($route) //Si la route existe
 				{
 					$type = $route->type();
-					if($type == Route::DIR)
+					$isExtern = $route->isExternRoute();
+					if($type == Route::DIR || $isExtern)
 					{
+						$action = $route->action();
+						if($isExtern)
+							list($action,$pathToks[]) = explode('.', $route->action());
+						
 						if(!isset(self::$_Path2Rte[$currentPath]))
 						{   //Si la route n'est pas en cache
-							$class = Controller::UseController($route->action());
+							$class = Controller::UseController($action);
 							self::$_Path2Rte[$currentPath] = $class::RoutesDefinition();
 						}
 						$routes = self::$_Path2Rte[$currentPath];
 						$url .= $route->pattern();
-								self::$_Path2Url[$currentPath] = $url; //On stocke l'url intermediaire
-								continue;
+						self::$_Path2Url[$currentPath] = $url; //On stocke l'url intermediaire
+						continue;
 					}
 					else if($type == Route::ACTION)
 					{

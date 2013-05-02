@@ -42,25 +42,25 @@ class Routes implements \IteratorAggregate
 		return $this;
 	}
 
-	public function action($pattern, $method = null,array $argsDef = null, $routeName = null)
+	public function action($pattern, $method = null,array $argsDef = null, $routeName = null, $customData = null)
 	{
 		if(empty($method))
 			$method = preg_replace('`[^\w]`', '', $pattern);
-		return $this->add(Route::ACTION, $routeName?$routeName:$method, $pattern, $method, $argsDef);
+		return $this->add(Route::ACTION, $routeName?$routeName:$method, $pattern, $method, $argsDef, $customData);
 	}
 
-	public function method($name, $method = null, array $argsDef = null, $routeName = null)
+	public function method($name, $method = null, array $argsDef = null, $routeName = null, $customData = null)
 	{
 		if(empty($method))
 			$method = preg_replace('`[^\w]`', '', $name);
-		return $this->add(Route::REMOTE_METHOD, $routeName?$routeName:$method, $name, $method, $argsDef);
+		return $this->add(Route::REMOTE_METHOD, $routeName?$routeName:$method, $name, $method, $argsDef, $customData);
 	}
 
-	public function dir($pattern, $controller ,array $argsDef = null, $routeName = null)
+	public function dir($pattern, $controller ,array $argsDef = null, $routeName = null, $customData = null)
 	{
 		if(strpos($pattern, '/') === false)
 			$pattern .= '/';
-		return $this->add(Route::DIR, $routeName?$routeName:$controller, $pattern, $controller, $argsDef);
+		return $this->add(Route::DIR, $routeName?$routeName:$controller, $pattern, $controller, $argsDef, $customData);
 	}
 
 	public function otherwise($action, $args = array())
@@ -72,11 +72,11 @@ class Routes implements \IteratorAggregate
 		return $this;
 	}
 
-	public function add($type,$name,$pattern,$action = null,array $argsDef = null)
+	public function add($type,$name,$pattern,$action = null,array $argsDef = null, $customData = null)
 	{
 		$name = strtolower($name);
 		
-		$r = new Route($type,$name,$pattern,$action,$argsDef);
+		$r = new Route($type,$name,$pattern,$action,$argsDef, $customData);
 		$this->_routes[] = $r;
 		
 		$this->_index[$name] = $r; //Indexe by realname
@@ -127,7 +127,6 @@ class Routes implements \IteratorAggregate
 		$route = null;
 		foreach (explode('.', $name) as $name)
 		{
-			
 			if(isset($routes->_index[$name]))
 			{
 				$route = $routes->_index[$name]->setParent($route);

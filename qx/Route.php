@@ -51,6 +51,16 @@ class Route
 		$this->_args = $args;
 	}
 
+	private $_customDatas = array();
+	public function customDatas()
+	{
+		return $this->_customDatas;
+	}
+	
+	public function setCustomDatas(array $datas)
+	{
+		$this->_customDatas = $datas;
+	}
 
 	private $_datas;
 	/**
@@ -69,17 +79,17 @@ class Route
 			}
 			else
 			{
-				$d = (array)$this->_datas;
+				$d = array_merge((array)$this->_datas, $this->_customDatas);
 				$r = $this; 
 			}
 			while($r)
 			{
-				$d = $d + (array)$r->_datas;
+				$d = $d + array_merge((array)$r->_datas, $r->_customDatas);
 				$r = $r->parent();
 			}
 			return (object)$d;
 		}
-		return $this->_datas;
+		return array_merge((array)$this->_datas, $this->_customDatas);
 	}
 	
 	public function setDatas($datas, $merge = true)
@@ -112,12 +122,18 @@ class Route
 	public function parent()
 	{
 		if($this->_parent == null && $this->_scope != null && $this->_scope->owner())
+		{
 			$this->_parent = $this->_scope->owner()->route();
+			if($this->_parent && $this->_parent->isAction())
+				$this->_parent = $this->_parent->parent();
+		}
 		return $this->_parent;
 	}
 	private $_customParents = false;
 	public function setParent(self $route = null)
 	{
+		if($route && $route->isAction())
+			$route = $route->parent();
 		$this->_parent = $route;
 		$this->_customParents = true;
 		return $this;
@@ -138,7 +154,7 @@ class Route
 		return $this->_routes;
 	}
 
-	public function __construct($type, $name, $pattern, $action, array $argsDef = null)
+	public function __construct($type, $name, $pattern, $action, array $argsDef = null, array $customDatas = null)
 	{
 		$this->_type = $type;
 		$this->_name = $name;
@@ -155,6 +171,8 @@ class Route
 		
 		$this->_action = $action;
 		$this->_argsDef = $argsDef;
+		if($customDatas)
+			$this->_customDatas = $customDatas;
 	}
 	/**
 	 * Match $uri,
@@ -193,19 +211,26 @@ class Route
 		if(!preg_match($p, $uri, $m))
 			return false;
 		array_shift($m);
+		$this->computeDatas($m);
+		$this->_rest = preg_replace($p, '', $uri);
+		return true;
+			
+	}
+	public function computeDatas(array $datas)
+	{
+		$datas = array_merge($datas, $this->_customDatas);
 		
 		$argsDef = $this->_argsDef;
 		if(is_null($argsDef))
 		{   //If not args def specified, search args in pattern
-			$keys = array_filter(array_keys($m),'is_numeric');
+			$keys = array_filter(array_keys($datas),'is_numeric');
 			$this->_args = array();
-			foreach(array_filter(array_keys($m),'is_numeric') as $i)
-				$this->_args[] = $m[$i];
+			foreach(array_filter(array_keys($datas),'is_numeric') as $i)
+				$this->_args[] = $datas[$i];
 			
 			$this->_datas = new \stdClass();
-			foreach(array_filter(array_keys($m),'is_string') as $k)
-				$this->_datas->$k = $m[$k];
-
+			foreach(array_filter(array_keys($datas),'is_string') as $k)
+				$this->_datas->$k = $datas[$k];
 		}
 		else
 		{
@@ -226,16 +251,12 @@ class Route
 							$name = null;
 						}
 						
-					$args[$name] = isset($m[$name]) ? $m[$name] : $defValue;
+					$args[$name] = isset($datas[$name]) ? $datas[$name] : $defValue;
 				}
 				$this->_datas = (object)$args;
 				$this->_args = array_values($args);
 		}
-		$this->_rest = preg_replace($p, '', $uri);
-		return true;
-			
 	}
-	
 	/**
 	 * Get copy of this route for scpecified scope
 	 * @param object $scope
@@ -245,8 +266,8 @@ class Route
 	{
 		$r = clone $this;
 		$r->_scope = $scope;
-		if($autoDefineParent)
-			$r->_parent = $scope->route(); //Normalement la route n'est pas défini dans le scope à ce moment là...
+		if($autoDefineParent && $scope->route())
+			$r->_parent = !$scope->route()->isDir() ? $scope->route()->parent() : $scope->route();
 		return $r;
 	}
 
@@ -262,6 +283,12 @@ class Route
 	{
 		return $this->_type === self::REMOTE_METHOD;
 	}
+
+	public function isExternRoute()
+	{
+		return $this->isAction() && strpos($this->_action, '.') !== false; 
+	}
+
 	public function __toString()
 	{
 		//On appelle d'abord l'accesseur parent() afin de forcer le calcul du parent
