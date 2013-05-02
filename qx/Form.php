@@ -283,3 +283,38 @@ class FormTypeUrl extends FormTypeDefault {
 	}
 }
 Form::RegisterFormType('url', '\\qx\\FormTypeUrl');
+
+class FormTypeArray extends FormTypeDefault {
+	public function setValue($value)
+	{
+		var_dump($value);
+		$this->value = is_array($value) ? $value : null;
+	}
+	public function getValue()
+	{
+		return $this->value;
+	}
+	public function validate()
+	{
+		parent::validate();
+		return true;
+	}
+}
+Form::RegisterFormType('array', '\\qx\\FormTypeArray');
+
+class FormTypeObject extends FormTypeDefault {
+	public function setValue($value)
+	{
+		$this->value = is_object($value) ? $value : null;
+	}
+	public function getValue()
+	{
+		return $this->value;
+	}
+	public function validate()
+	{
+		parent::validate();
+		return true;
+	}
+}
+Form::RegisterFormType('object', '\\qx\\FormTypeObject');
