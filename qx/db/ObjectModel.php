@@ -10,6 +10,7 @@ class ObjectModel extends \qx\Observable
 	protected $_fieldsDefinitions = array();
 	protected $_foreignsTables = array();
 	protected $_datas = array();
+	protected $_extraDatas = array();
 
 	protected $_primaryKey = 'id';
 
@@ -61,6 +62,8 @@ class ObjectModel extends \qx\Observable
 			if(isset($this->_datas[$name]) && $lastValue !== $this->_datas[$name])
 				$this->setModified($name);
 		}
+		else
+			$this->_extraDatas[$name] = $value;
 	}
 
 	public function __unset($name)
@@ -106,6 +109,7 @@ class ObjectModel extends \qx\Observable
 		foreach ($this->_fields as $f)
 			$this->$f = null;
 		$this->_modifiedFields = array();
+		$this->_extraDatas = array();
 	}
 
 	protected $primaryKeyFilled = false;
@@ -289,7 +293,10 @@ class ObjectModel extends \qx\Observable
 		}
 		return $this->_foreignsCache[$name];
 	}
-
+	public function extra()
+	{
+		return (object)$this->_extraDatas;
+	}
 	public function toArray()
 	{
 		$a = array();
