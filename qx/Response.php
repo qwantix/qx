@@ -59,11 +59,8 @@ class Response extends Observable
 				$data->$ns = $out = $part->createView()
 										->render($data,$ctrl);
 			}
-			catch(\qx\ViewNotFoundException $e) 
-			{
-
-			}
-
+			catch(\qx\ViewNotFoundException $e) {}
+		
 			//Remerge for template modifiction
 			$this->mergeInclusions($part->datas(), $data);
 			
@@ -114,6 +111,7 @@ class Response extends Observable
 		}
 		else
 			$source->__styles = $dest->__styles;
+		
 		return $dest;
 	}
 	
@@ -122,5 +120,10 @@ class Response extends Observable
 		$this->_parts[] = $part;
 	}
 	
+	public function clear()
+	{
+		$this->_parts = array();
+		return $this;
+	}
 	
 }
