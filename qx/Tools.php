@@ -193,8 +193,7 @@ class Tools
 
 	static public function GetTimezones()
 	{
-		$timezones = DateTimeZone::listAbbreviations();
-		
+		$timezones = \DateTimeZone::listAbbreviations();
 		$cities = array();
 		foreach( $timezones as $key => $zones )
 		{
@@ -217,9 +216,18 @@ class Tools
 
 		// Only keep one city (the first and also most important) for each set of possibilities. 
 		$cities = array_unique( $cities );
-
+		
 		// Sort by area/city name.
 		ksort( $cities );
+	}
+
+	static public function Utf8Encode($value)
+	{
+		return mb_check_encoding($value,"UTF-8") ? $value : utf8_encode($value);
+	}
+	static public function Utf8Decode($value)
+	{
+		return mb_check_encoding($value,"UTF-8") ? utf8_decode($value) : $value;
 	}
 }
 
