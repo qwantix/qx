@@ -52,8 +52,10 @@ class Route
 	}
 
 	private $_customDatas = array();
-	public function customDatas()
+	public function customDatas($all = false)
 	{
+		if($all && $this->parent())
+			return array_merge($this->parent()->customDatas(true),$this->_customDatas);
 		return $this->_customDatas;
 	}
 	
@@ -205,7 +207,10 @@ class Route
 				array('(?P<\\1>[^/]+)',	'(?P<\\1>\d+)',	'(?P<\\1>.*)'	),
 			($p)//TODO make a custom preg_quote
 			);
-			$p = $this->_type == self::DIR ? "`^$p/?`" : "`^$p$`";
+			if($this->_type == self::DIR)
+				$p = $p && $p[strlen($p) - 1] === '/' ? "`^$p?`" : "`^$p/?`";
+			else
+				$p = "`^$p$`";
 		}
 		
 		if(!preg_match($p, $uri, $m))
