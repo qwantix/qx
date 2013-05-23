@@ -41,10 +41,10 @@ class ObjectModel extends \qx\Observable
 
 	public function __get($name)
 	{
-		if(in_array($name, $this->_fields))
-			return method_exists($this, $this->_get_prefix.$name) ?
-				 $this->{$this->_get_prefix.$name}() : 
-				 $this->get_field($name);
+		if(method_exists($this, $this->_get_prefix.$name))
+			return $this->{$this->_get_prefix.$name}();
+		else if(in_array($name, $this->_fields))
+			return $this->get_field($name);
 		else if(isset($this->_foreignsTables[$name]))
 			return $this->getForeignObject($name);
 		return  null;
@@ -61,6 +61,10 @@ class ObjectModel extends \qx\Observable
 				$this->set_field($name, $value);
 			if(isset($this->_datas[$name]) && $lastValue !== $this->_datas[$name])
 				$this->setModified($name);
+		}
+		else if(method_exists($this, $this->_set_prefix.$name))
+		{
+			$this->{$this->_set_prefix.$name}($value);
 		}
 		else
 			$this->_extraDatas[$name] = $value;
@@ -265,7 +269,7 @@ class ObjectModel extends \qx\Observable
 	{
 		$a = array();
 		foreach ($this->_modifiedFields as $f)
-			$a[$f] = $this->_datas[$f];
+			$a[$f] = isset($this->_datas[$f]) ? $this->_datas[$f] : null;
 		return $a;
 	}
 
@@ -280,18 +284,24 @@ class ObjectModel extends \qx\Observable
 			$this->_modifiedFields[] = $name;
 	}
 
-	private $_foreignsCache = array();
+	protected $_foreignsCache = array();
 	public function getForeignObject($name)
 	{
 		if(!isset($this->_foreignsCache[$name]))
 		{
 			list($field, $table, $tableField) = $this->_foreignsTables[$name];
 			$cls = '\\app\\models\\'.str_replace(' ', '',ucwords(str_replace('_', ' ', $table)));
-			$o = new $cls();
-			$o->fetch(array($tableField=>$this->$field));
-			$this->_foreignsCache[$name] = $o;
+			/*$o = new $cls();
+			$o->fetch(array($tableField=>$this->$field));*/
+			$this->_foreignsCache[$name] = $this->createForeignObject($cls, $field, $tableField);
 		}
 		return $this->_foreignsCache[$name];
+	}
+	protected function createForeignObject($cls, $localField, $foreignField)
+	{
+		$o = new $cls();
+		$o->fetch(array($foreignField=>$this->$localField));
+		return $o;
 	}
 	public function extra()
 	{
@@ -321,6 +331,6 @@ class ObjectModel extends \qx\Observable
 	 */
 	public function session()
 	{
-		return Session::Of($this, $this->id);
+		return \qx\Session::Of($this, $this->id);
 	}
 }
