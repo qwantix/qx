@@ -33,9 +33,12 @@ class Routes implements \IteratorAggregate
 	}
 
 
-	public function root($action,$args = array())
+	public function root($action,$args = array(), $type = Route::ACTION)
 	{
-		$this->_root = new Route(Route::ACTION,$action,'',$action);
+		if(!in_array($type, array(Route::ACTION, Route::REMOTE_METHOD)))
+			throw new Exception("Only Route::ACTION and Route::REMOTE_METHOD are allowed");
+		
+		$this->_root = new Route($type,$action,'',$action);
 		if($args != null && !is_array($args))
 			$args = array($args);
 		$this->_root->setArgs($args);
@@ -63,9 +66,11 @@ class Routes implements \IteratorAggregate
 		return $this->add(Route::DIR, $routeName?$routeName:$controller, $pattern, $controller, $argsDef, $customData);
 	}
 
-	public function otherwise($action, $args = array())
+	public function otherwise($action, $args = array(), $type = Route::ACTION)
 	{
-		$this->_otherwise = new Route(Route::ACTION,$action,'',$action);
+		if(!in_array($type, array(Route::ACTION, Route::REMOTE_METHOD)))
+			throw new Exception("Only Route::ACTION and Route::REMOTE_METHOD are allowed");
+		$this->_otherwise = new Route($type,$action,'',$action);
 		if($args != null && !is_array($args))
 			$args = array($args);
 		$this->_otherwise->setArgs($args);
