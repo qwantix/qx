@@ -13,7 +13,7 @@ class ObjectModel extends \qx\db\ObjectModel
 		$this->connection = $this->connectionName ? Connection::Get($this->connectionName) : Connection::Current();
 		parent::__construct($datas);
 	}
-	public function q()
+	public function createClause()
 	{
 		return $this->connection->createClause($this->connection->table($this->tableName()));
 	}
@@ -76,6 +76,7 @@ class ObjectModel extends \qx\db\ObjectModel
 		if(!isset($q['from']))
 			$q['from'] = $o->connection->table($o->tableName());
 		$q = $o->connection->mergeClauses($o->defaultClause(), $q);
+		
 		$a = $o->connection->select($q,$args,get_called_class());
 		foreach ($a as $o)
 			$o->clearModifications(); //XXX
@@ -84,7 +85,8 @@ class ObjectModel extends \qx\db\ObjectModel
 	static public function FindOne(array $q = array(), $args = null)
 	{
 		//	$q['limit'] = array('0','1');
-		$a = self::Find($q, $args);
+		$cls = get_called_class();
+		$a = $cls::Find($q, $args);
 		return count($a)?$a[0]:null;
 	}
 	static public function Search(array $q = array(), $args = null, $from = 0, $pageSize = 10, $sort = null)
