@@ -282,7 +282,7 @@ class Connection {
 					else
 					{
 						$argName = ':where_args_'.$n++;
-						$a[] = (strpos($key, '`')!==false?$key:"`$key`")." = ".$argName;
+						$a[] = (strpos($key, '`')!==false || strpos($key, '.')!==false?$key:"`$key`")." = ".$argName;
 						$args[$argName] = $value;
 					}
 				}
