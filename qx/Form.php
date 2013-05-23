@@ -74,12 +74,15 @@ class Form extends Observable {
 		return true;
 	}
 
-	public function values()
+	public function values($initializedOnly = false)
 	{
 		$o = new \stdClass();
 		foreach($this->_fields as $field=>$def)
 		{
 			$def = (object) $def;
+			$f = $this->field($field);
+			if($initializedOnly && !$f->initialized())
+				continue;
 			$v = $this->field($field)->getValue();
 			$o->$field = $v;
 		}
@@ -96,7 +99,8 @@ class Form extends Observable {
 		$opt = (object)$this->_fields[$name];
 		$inst = self::CreateFormField(isset($opt->type)?$opt->type:'default') ;
 		$inst->setOptions($opt);
-		$inst->setValue(isset($this->_datas[$name])?$this->_datas[$name]:null);
+		if(isset($this->_datas[$name]))
+			$inst->setValue($this->_datas[$name]);
 		$this->_fieldsInst[$name] = $inst;
 		return $inst;
 	}
@@ -149,12 +153,14 @@ interface IFormType
 	public function getValue();
 	public function validate();
 	public function isEmpty();
+	public function initialized();
 }
 
 class FormTypeDefault implements IFormType
 {
 	protected $opts;
 	protected $value;
+	protected $initialized;
 	public function setOptions($opts)
 	{
 		$this->opts = (object)$opts;
@@ -162,6 +168,7 @@ class FormTypeDefault implements IFormType
 	public function setValue($value)
 	{
 		$this->value = trim($value);
+		$this->initialized = true;
 	}
 	public function getValue()
 	{
@@ -176,6 +183,10 @@ class FormTypeDefault implements IFormType
 	public function isEmpty()
 	{
 		return empty($this->value);
+	}
+	public function initialized()
+	{
+		return $this->initialized;
 	}
 }
 Form::RegisterFormType('default', '\\qx\\FormTypeDefault');
@@ -287,8 +298,8 @@ Form::RegisterFormType('url', '\\qx\\FormTypeUrl');
 class FormTypeArray extends FormTypeDefault {
 	public function setValue($value)
 	{
-		var_dump($value);
 		$this->value = is_array($value) ? $value : null;
+		$this->initialized = true;
 	}
 	public function getValue()
 	{
@@ -306,6 +317,7 @@ class FormTypeObject extends FormTypeDefault {
 	public function setValue($value)
 	{
 		$this->value = is_object($value) ? $value : null;
+		$this->initialized = true;
 	}
 	public function getValue()
 	{
