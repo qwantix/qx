@@ -32,7 +32,7 @@ class ViewController extends Controller
 	{
 		return $this instanceof App?$this:$this->owner()->app();
 	}
-
+	
 	private $_response;
 	/**
 	 * Get response part for this controller
@@ -72,7 +72,6 @@ class ViewController extends Controller
 
 	protected function setRoute($r, $datas = null)
 	{
-		
 		if(is_string($r))
 			$r = $this->app()->routes()
 					->findByName($r)
@@ -151,8 +150,15 @@ class ViewController extends Controller
 		{
 			$this->_route = $route;
 			$this->preExec();
-			$this->execRoute($route);
-			$this->app()->mainResponse()->append($this->response());
+			try 
+			{
+				$this->execRoute($route);
+				$this->app()->mainResponse()->append($this->response());
+			}
+			catch(\qx\Exception $e)
+			{
+				$this->onError($e);
+			}
 			$this->postExec();
 			return true;
 		}
@@ -318,5 +324,10 @@ class ViewController extends Controller
 			$response = $this->execRoute($r, $routeName, true);
 			return $response;
 		}
+	}
+
+	protected function onError(\qx\Exception $e)
+	{
+
 	}
 }
