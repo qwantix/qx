@@ -178,6 +178,11 @@ class FormTypeDefault implements IFormType
 	{
 		if(!empty($this->opts->required) && $this->isEmpty())
 			throw new FormException(__('This field is required'));
+		if(isset($this->opts->minChars) && strlen($this->value) < $this->opts->minChars)
+			throw new FormException(__('This field require %s characters minimum',$this->opts->minChars));
+		if(isset($this->opts->maxChars) && strlen($this->value) > $this->opts->maxChars)
+			throw new FormException(__('This field is too long (%s characters maximum)',$this->opts->maxChars));
+			
 		return true;
 	}
 	public function isEmpty()
@@ -187,6 +192,11 @@ class FormTypeDefault implements IFormType
 	public function initialized()
 	{
 		return $this->initialized;
+	}
+
+	public function __toString()
+	{
+		return $this->getValue();
 	}
 }
 Form::RegisterFormType('default', '\\qx\\FormTypeDefault');
