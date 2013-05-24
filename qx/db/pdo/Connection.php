@@ -59,7 +59,7 @@ class Connection {
 	}
 	public function inTransaction()
 	{
-		$this->pdo->inTransaction();
+		return $this->pdo->inTransaction();
 	}
 
 	public function exec($sqlOrClause, array $args = null)
