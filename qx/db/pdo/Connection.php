@@ -57,6 +57,10 @@ class Connection {
 	{
 		$this->pdo->commit();
 	}
+	public function inTransaction()
+	{
+		$this->pdo->inTransaction();
+	}
 
 	public function exec($sqlOrClause, array $args = null)
 	{
