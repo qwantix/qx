@@ -103,6 +103,17 @@ class ResponsePart
 		return $this->_view ? $this->_view : ($this->_action ? $this->_action : 'default');
 	}
 
+	private $_mainViewName;
+	public function mainViewName()
+	{
+		if(func_num_args() > 0)
+		{
+			$this->_mainViewName = (string)func_get_arg(0);
+			return $this;
+		}
+		return $this->_mainViewName;
+	}
+
 	public function createView($type = null, $name = null)
 	{
 		if(!$name)
@@ -155,7 +166,7 @@ class ResponsePart
 			$this->_type = (string)func_get_arg(0);
 			return $this;
 		}
-
+		
 		if(empty($this->_type))
 		{
 			$ct = $_SERVER['HTTP_ACCEPT'];

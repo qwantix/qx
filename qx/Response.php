@@ -68,7 +68,10 @@ class Response extends Observable
 			{
 				try
 				{
-					$out = View::Create($part->viewDir().$viewMainName, $part->type())->render($data,$ctrl);
+					$mainViewName = $part->mainViewName();
+					if(empty($mainViewName))
+						$mainViewName = $viewMainName;
+					$out = View::Create($part->viewDir().$mainViewName, $part->type())->render($data,$ctrl);
 					$data->$ns = $out;
 					$this->mergeInclusions($part->datas(), $data);
 				}
