@@ -65,7 +65,7 @@ class Auth extends Controller
 	}
 	public function hasRight($right)
 	{
-		$this->auth->hasRight($right);
+		return $this->auth->hasRight($right);
 	}
 	
 	public function isLogged()
