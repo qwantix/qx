@@ -6,17 +6,19 @@ namespace qx;
 class Request
 {
 
-	static public function Get($name,$default = null)
+	static public function Get($name,$default = null, $setDefaultIfEmpty = false)
 	{
-		return array_key_exists($name, $_GET) ? $_GET[$name] : $default;
+		return array_key_exists($name, $_GET) ? 
+			!$setDefaultIfEmpty || ($setDefaultIfEmpty && $_GET[$name] != '')  ? $_GET[$name] : $default : $default;
 	}
 
-	static public function Post($name,$default = null)
+	static public function Post($name,$default = null, $setDefaultIfEmpty = false)
 	{
-		return array_key_exists($name, $_POST) ? $_POST[$name] : $default;
+		return array_key_exists($name, $_POST) ? 
+			!$setDefaultIfEmpty || ($setDefaultIfEmpty && $_POST[$name] != '')  ? $_POST[$name] : $default : $default;
 	}
 
-	static public function File($name)
+	static public function File($name, $setDefaultIfEmpty = false)
 	{
 		return array_key_exists($name, $_FILES) ? $_FILES[$name] : false;
 	}
