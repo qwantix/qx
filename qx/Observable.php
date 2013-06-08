@@ -6,7 +6,7 @@ namespace qx;
 class Observable 
 {
 	
-	private $handlers = array();
+	private $_handlers = array();
 	private function _handlerIndex($name,$handler)
 	{
 		if(!$this->_handlers[$name])
@@ -40,10 +40,10 @@ class Observable
 	 */
 	public function on($name,$handler)
 	{
-		if(!isset($this->handler[$name]))
-			$this->handlers[$name] = array();
-		if($this->_handlerIndex($name, $handler) != -1)
-			$this->handlers[$name][] = $handler;
+		if(!isset($this->handlers[$name]))
+			$this->_handlers[$name] = array();
+		if($this->_handlerIndex($name, $handler) === -1)
+			$this->_handlers[$name][] = $handler;
 		return $this;
 	}
 	/**
@@ -64,11 +64,11 @@ class Observable
 			$e = new Event($nameOrEvent, $datas);
 
 		$e->target = $this;
-		if(isset($this->handlers[$e->name]))
 		$n = 0;
-
+		if(!isset($this->_handlers[$e->name]))
+			return $n;
 		//TODO Priority & stopPropagation
-		foreach ($this->handlers[$e->name] as $h)
+		foreach ($this->_handlers[$e->name] as $h)
 		{
 			$h($e);
 			$n++;
