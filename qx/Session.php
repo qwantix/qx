@@ -20,11 +20,12 @@ class Session
 		self::CheckAutoStart();
 		return session_id().'/'.
 				md5(
+					Config::Of('app')->get('session.salt','')
+					
 					//'$'.@$_SERVER['HTTP_USER_AGENT'].
 					//'|'.$_SERVER['HTTP_HOST'].
-					'-'.$_SERVER['REMOTE_ADDR'].
+					.'-'.$_SERVER['REMOTE_ADDR']
 					//'/'.$_SERVER['HTTP_ACCEPT_LANGUAGE'].
-					'-'
 				);
 	} 
 
