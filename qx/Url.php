@@ -17,7 +17,7 @@ class Url
 	 * @param array $args
 	 * @return string 
 	 */
-	static public function FromRoute(Route $routeFrom,$routePath = null,array $args = null)
+	static public function FromRoute(Route $routeFrom,$routePath = null,array $args = null, $replaceEmptyArgs = true)
 	{
 		$scope = $routeFrom->scope();
 		
@@ -48,7 +48,6 @@ class Url
 			
 			$args = $args ? $args : array();
 			$args = array_merge((array)$routeFrom->datas(true),$args);
-			
 			$scope = $scope->app();
 		}
 		
@@ -127,9 +126,11 @@ class Url
 					$get[$k] = $v; 
 			}
 		}
-		//Replace empty number arguments
-		$url = preg_replace('([#][\w]+)', '0', $url);
-
+		if($replaceEmptyArgs)
+		{
+			//Replace empty number arguments
+			$url = preg_replace('([#][\w]+)', '0', $url);
+		}
 		if(!empty($get))
 			$url .= '?'.http_build_query($get); //Sera mis à jour en http_build_query($get,null,null,PHP_QUERY_RFC3986)
 		

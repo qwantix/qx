@@ -28,7 +28,6 @@ class Component extends Observable {
 				.'.php'
 			;
 			$path = str_replace('\\', DIRECTORY_SEPARATOR, $path);
-
 			if(!file_exists($path))
 				throw new Exception("Missing component $component");
 			
@@ -129,6 +128,7 @@ class Component extends Observable {
 	protected function createView($name)
 	{
 		$v = $this->owner()->response()->createView('html',$name); //Get view in current context
+		
 		if(!$v->exists())
 		{
 			$v = View::Create($name,'html');

@@ -118,10 +118,25 @@ class ViewJson extends View
 		$r->header('location', $_SERVER['REQUEST_URI']);
 		//header('Content-Type: application/json; charset=UTF-8');
 		$res = array(
-			'header'=>$r->header(),
+			'header'=>$ctrl->app()->mainResponse()->headers(),
 			'body'=>$datas->toObject()
 		);
+		//$res = $this->toUft8($res);
 		return json_encode($res);
+	}
+
+	protected function toUft8($data)
+	{
+		if(is_string($data))
+			return \qx\Tools::Utf8Encode($data);
+		elseif(is_object($data))
+			foreach ($data as $key => $value)
+				$data->$key = $this->toUft8($value);
+		elseif(is_array($data))
+			foreach ($data as $key => $value)
+				$data[$key] = $this->toUft8($value);
+		return $data;
+			
 	}
 }
 

@@ -33,11 +33,15 @@ class Connection {
 
 	private $pdo;
 	private $dsn;
+	private $debug;
+	private $lastQuery;
 	public function __construct($dsn, $username, $password)
 	{
 		$this->dsn = $dsn;
-		$this->pdo = new \PDO($dsn,$username,$password);
+		$this->pdo = new \PDO($dsn,$username,$password, array(\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''));
 		$this->pdo->setAttribute(\PDO::ATTR_ERRMODE,\PDO::ERRMODE_EXCEPTION);
+
+		$this->debug = !!\qx\Config::Of('app')->get('debug');
 	}
 
 	public function pdo()
@@ -57,11 +61,28 @@ class Connection {
 	{
 		$this->pdo->commit();
 	}
+	public function rollback()
+	{
+		$this->pdo->rollback();
+	}
 	public function inTransaction()
 	{
 		return $this->pdo->inTransaction();
 	}
+	public function getLastQuery($compiled = false)
+	{
+		if($compiled)
+		{
+			list($s,$a) = $this->lastQuery;
+			if(!empty($a))
+				return str_replace(array_keys($a), array_map(function($v){
+					return is_numeric($v) ? $v : '"'.$v.'"';
+				},array_values($a)), $s);
+			return $s;
 
+		}
+		return $this->lastQuery;
+	}
 	public function exec($sqlOrClause, array $args = null)
 	{
 		return $this->_exec($sqlOrClause,$args); //Fix pass $args by reference problem
@@ -69,15 +90,15 @@ class Connection {
 	protected function _exec($sqlOrClause, array &$args = null) 
 	{
 		$sql = is_string($sqlOrClause) ? $sqlOrClause : $this->build($sqlOrClause, $args);
+		$this->lastQuery = array($sql,$args);
+		if($this->debug)
+			\qx\Debug::Instance()->logQuery($sql,$args);
 		$sth = $this->pdo->prepare($sql);
 		try {
 			$sth->execute($args);
 		} catch (\Exception $e) {
-			var_dump($sql,$args);
-			throw $e;
+			throw new \qx\DbException($e, $sql, $args);
 		}
-		//var_dump($sql);
-		//var_dump($args);
 		return $sth;
 	}
 	public function select($sqlOrClause, array $args = null, $class = null) 
@@ -277,7 +298,13 @@ class Connection {
 				{
 					if(is_array($value))
 					{
-						$a[] = $key . ' IN('.implode(',',array_map('intval',$value)).')';
+						$in_values = array();
+						$argName = ':where_args_'.$n++.'_in_';
+						foreach ($value as $i=>$v) {
+							$args[$argName.$i] = $v;
+							$in_values[] = $argName.$i;
+						}
+						$a[] = $key . ' IN('.implode(',',$in_values).')';
 					}
 					else if($value === null)
 					{
@@ -332,7 +359,7 @@ class Connection {
 
 		$c = $this->createClause($c1->from);
 		
-		foreach(array('select','join','where','groupBy','orderBy') as $part)
+		foreach(array('select','join','where','groupBy','orderBy','limit','distinct') as $part)
 		{
 			if(in_array($part,$overrides) && isset($c2->$part))
 				$c->$part = $c2->$part;

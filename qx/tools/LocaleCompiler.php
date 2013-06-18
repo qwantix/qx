@@ -14,6 +14,12 @@ class LocaleCompiler
 		self::$patterns[] = (object)array('fileMask'=>$fileMask,'mask'=>$mask,'index'=>$index);
 	}
 	
+	private $_searchPath = array();
+	public function addSearchPath($searchPath)
+	{
+		$this->_searchPath = array_merge($this->_searchPath, func_get_args());
+		return $this;
+	}
 	public function process(array $locales)
 	{
 		$this->messages = array();
@@ -21,7 +27,10 @@ class LocaleCompiler
 
 		$this->processDir('app');
 		$this->processDir('lib');
-		$this->processDir(__DIR__.'/..');
+		$this->processDir(__DIR__.'/..'); //Qx
+
+		foreach ($this->_searchPath as $p)
+			$this->processDir($p);
 
 		$this->checkSimilarity();
 		
@@ -31,15 +40,18 @@ class LocaleCompiler
 	
 	private function processDir($dir)
 	{
-		foreach(scandir($dir) as $e)
-		{
-			if($e{0} == '.')
-				continue;
-			if(is_dir("$dir/$e"))
-				$this->processDir("$dir/$e");
-			else
-				$this->processFile("$dir/$e");
-		}
+		if(is_readable($dir))
+			foreach(scandir($dir) as $e)
+			{
+				if($e{0} == '.')
+					continue;
+				if(is_dir("$dir/$e"))
+					$this->processDir("$dir/$e");
+				else
+					$this->processFile("$dir/$e");
+			}
+		else
+			$this->messages[] = "Fail to scan dir $dir, access denied";
 	}
 
 	private $filenames = array();

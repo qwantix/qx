@@ -29,7 +29,8 @@ class Response extends Observable
 
 		$data->ConfigApp = $conf;
 		$data->root = $conf->get('wwwroot');
-		$data->session_token = Session::Token();
+		if(Session::Started())
+			$data->session_token = Session::Token();
 		$data->lang =  Locale::Current()->getLang();
 
 		$defaultDataNs = 'innerContent';
@@ -129,4 +130,11 @@ class Response extends Observable
 		return $this;
 	}
 	
+	public function headers()
+	{
+		$a = array();
+		foreach ($this->_parts as $p)
+			$a = array_merge($a, $p->header());
+		return $a;
+	}
 }

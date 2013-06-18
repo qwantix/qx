@@ -94,6 +94,11 @@ namespace qx {
 		{
 			return $this->lang;
 		}
+
+		public function getCountry()
+		{
+			return $this->lang; //TODO
+		}
 	}
 }
 namespace {

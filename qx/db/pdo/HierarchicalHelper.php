@@ -65,11 +65,47 @@ class HierarchicalHelper extends \qx\Observable
 		$this->_model->connection()->exec($q, $args);
 		$this->_connection->commit();
 	}
-	public function insertAt()
+	public function insertAfter($lft, $insertModel = true)
 	{
-		//TODO
+		if($insertModel)
+			$this->_connection->startTransaction();
+		$this->_model->{$this->_lftField} = $lft + 1;
+		$this->_model->{$this->_rgtField} = $lft + 2;
+		//Make some place
+		$q =  "UPDATE `$this->_table` SET ";
+		$q .= "$this->_lftField = $this->_lftField + 2,";
+		$q .= "$this->_rgtField = $this->_rgtField + 2 ";
+		$q .= "WHERE $this->_rgtField > :lft";
+		$this->_model->connection()->exec($q, array('lft'=>$lft));
+		//Insert
+		if($insertModel)
+		{
+			$this->_model->insert();
+			$this->_connection->commit();
+		}
 	}
-
+	public function appendChild($rgt, $insertModel = true)
+	{
+		if($insertModel)
+			$this->_connection->startTransaction();
+		$this->_model->{$this->_lftField} = $rgt;
+		$this->_model->{$this->_rgtField} = $rgt + 1;
+		//Make some place
+		$q =  "UPDATE `$this->_table` SET ";
+		$q .= "$this->_lftField = $this->_lftField + 2 ";
+		$q .= "WHERE $this->_lftField > :rgt";
+		$this->_model->connection()->exec($q, array('rgt'=>$rgt));
+		$q =  "UPDATE `$this->_table` SET ";
+		$q .= "$this->_rgtField = $this->_rgtField + 2 ";
+		$q .= "WHERE $this->_rgtField >= :rgt";
+		$this->_model->connection()->exec($q, array('rgt'=>$rgt));
+		//Insert
+		if($insertModel)
+		{
+			$this->_model->insert();
+			$this->_connection->commit();
+		}
+	}
 	public function rebuild()
 	{
 		$this->_connection->startTransaction();

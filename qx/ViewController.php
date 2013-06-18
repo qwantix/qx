@@ -24,6 +24,7 @@ class ViewController extends Controller
 		return Tools::ShiftNamespace($conf->get('namespace').
 			'\\'.$conf->get('controller.namespace'),$cls);
 	}
+	
 	/**
 	 * Get application instance
 	 * @return App
@@ -149,16 +150,19 @@ class ViewController extends Controller
 		if($route)
 		{
 			$this->_route = $route;
-			$this->preExec();
-			try 
+			if($this->preExec() !== false)
 			{
-				$this->execRoute($route);
-				$this->app()->mainResponse()->append($this->response());
+				try 
+				{
+					$this->execRoute($route);
+					//$this->app()->mainResponse()->append($this->response());
+				}
+				catch(\qx\Exception $e)
+				{
+					$this->onError($e);
+				}
 			}
-			catch(\qx\Exception $e)
-			{
-				$this->onError($e);
-			}
+			$this->app()->mainResponse()->append($this->response());
 			$this->postExec();
 			return true;
 		}
@@ -166,7 +170,6 @@ class ViewController extends Controller
 	}
 	protected function execRoute(Route $route, $subRoute = null, $isSubRoute = false)
 	{	
-		
 		$handler = $route->action();
 		switch ($route->type())
 		{
@@ -176,14 +179,26 @@ class ViewController extends Controller
 				{
 					if($isSubRoute)
 						$ctrl->setRoute( $route->forScope($ctrl) );
-					
-					$ctrl->execController($ctrl);
 					if(!empty($subRoute))
-					{
-						$ctrl->execSubRoute($subRoute, (array)$route->datas());
-						$this->app()->mainResponse()->append($ctrl->response());
+					{ 
+						//XXXX Fix redundance code of exec method
+						if($ctrl->preExec() !== false)
+						{
+							try 
+							{
+								$ctrl->execSubRoute($subRoute, (array)$route->datas());
+							}
+							catch(\qx\Exception $e)
+							{
+								$ctrl->onError($e);
+							}
+						}
+						$ctrl->app()->mainResponse()->append($ctrl->response());
+						$ctrl->postExec();
 					}
-					
+					else
+						$ctrl->execController($ctrl);
+
 					$r = $ctrl->response();
 				}
 				else
@@ -221,7 +236,6 @@ class ViewController extends Controller
 
 	protected function execController(self $ctrl)
 	{
-
 		return $ctrl->exec();
 	}
 	
@@ -318,6 +332,7 @@ class ViewController extends Controller
 		{
 			$datas = $this->route() ? $this->route()->datas() : array();
 		}
+
 		if($r = $o->routes()->findByName(array_shift($routeName)))
 		{
 			$r->computeDatas($datas);
@@ -328,6 +343,6 @@ class ViewController extends Controller
 
 	protected function onError(\qx\Exception $e)
 	{
-
+		throw $e;
 	}
 }

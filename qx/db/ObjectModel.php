@@ -282,6 +282,8 @@ class ObjectModel extends \qx\Observable
 	{
 		if(!in_array($name, $this->_modifiedFields))
 			$this->_modifiedFields[] = $name;
+		if(isset($this->_foreignsCache[$name]))
+			unset($this->_foreignsCache[$name]);
 	}
 
 	protected $_foreignsCache = array();

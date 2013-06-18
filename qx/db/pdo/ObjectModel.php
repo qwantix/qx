@@ -67,7 +67,7 @@ class ObjectModel extends \qx\db\ObjectModel
 		$this->connection->delete($this->tableName(),$this->get_primaryKey(true));
 	}
 
-	static public function Find(array $q = array(),$args = null)
+	static public function Find(array $q = array(),$args = null, $returnAsSelf = true)
 	{
 		$cls = get_called_class();
 		if(!Connection::IsClause($q))
@@ -76,10 +76,10 @@ class ObjectModel extends \qx\db\ObjectModel
 		if(!isset($q['from']))
 			$q['from'] = $o->connection->table($o->tableName());
 		$q = $o->connection->mergeClauses($o->defaultClause(), $q);
-		
-		$a = $o->connection->select($q,$args,get_called_class());
-		foreach ($a as $o)
-			$o->clearModifications(); //XXX
+		$a = $o->connection->select($q, $args, $returnAsSelf ? get_called_class() : null);
+		if($returnAsSelf)
+			foreach ($a as $o)
+				$o->clearModifications(); //XXX
 		return $a;
 	}
 	static public function FindOne(array $q = array(), $args = null)

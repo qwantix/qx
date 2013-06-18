@@ -71,8 +71,7 @@ class App extends ViewController
 		;
 		
 		Config::Load('app/config.json');
-		
-		Session::Start();
+
 	}
 
 	protected function init()
@@ -94,7 +93,7 @@ class App extends ViewController
 		return $compiler;
 	}
 
-	public function postGlobalExec()
+	protected function postGlobalExec()
 	{
 		
 	}
