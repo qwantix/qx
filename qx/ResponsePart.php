@@ -232,9 +232,9 @@ class ResponsePart
 	{
 		if(!isset($this->_datas->__scripts))
 			$this->_datas->__scripts = array();
+		$file = $this->addFileTimestamp($file);
 		if(!in_array($file, $this->_datas->__scripts))
 			$this->_datas->__scripts = array_merge($this->_datas->__scripts,array($file));
-
 		return $this;
 	}
 
@@ -242,11 +242,18 @@ class ResponsePart
 	{
 		if(!isset($this->_datas->__styles))
 			$this->_datas->__styles = array();
+		$file = $this->addFileTimestamp($file);
 		if(!in_array($file, $this->_datas->__styles))
 			$this->_datas->__styles = array_merge($this->_datas->__styles, array($file));
 		return $this;
 	}
 
+	protected function addFileTimestamp($file)
+	{
+		if($tm = @filemtime('www/'.$file)) //XXX
+			$file .= (strpos($file, '?') !== false ? '&' : '?').'_='.$tm;
+		return $file;
+	}
 	public function __construct(ViewController $ctrl)
 	{
 		$this->_controller = $ctrl;
