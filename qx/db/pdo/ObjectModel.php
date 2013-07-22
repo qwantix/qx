@@ -21,17 +21,15 @@ class ObjectModel extends \qx\db\ObjectModel
 	{
 		return $this->connection;
 	}
-	public function fetch($filters = null)
+	public function fetch($filters = null, $params = array())
 	{
 		$filters = $filters ? $filters : $this->get_primaryKey(true);
 
-		$dc = $this->defaultClause();
+		$dc = $this->defaultClause($params);
 		if(!$dc)
 			$dc = $this->connection->createClause($this->connection->table($this->tableName()));
-
 		if($filters)
 			$dc = $this->connection->mergeClauses($dc,array('where'=>$filters));
-			//$filters = $this->connection->mergeClauses($dc, $filters);
 
 		$r = $this->connection->select($dc);
 		if(!empty($r))
@@ -39,6 +37,8 @@ class ObjectModel extends \qx\db\ObjectModel
 			$this->import($r[0], true);
 			return $this;
 		}
+		else
+			$this->reset();
 		return null;
 	}
 	protected function defaultClause()
@@ -67,7 +67,7 @@ class ObjectModel extends \qx\db\ObjectModel
 		$this->connection->delete($this->tableName(),$this->get_primaryKey(true));
 	}
 
-	static public function Find(array $q = array(),$args = null, $returnAsSelf = true)
+	static public function Find(array $q = array(),$args = null, $returnAsSelf = true, $defaultClauseParams = array())
 	{
 		$cls = get_called_class();
 		if(!Connection::IsClause($q))
@@ -75,18 +75,18 @@ class ObjectModel extends \qx\db\ObjectModel
 		$o = new $cls();
 		if(!isset($q['from']))
 			$q['from'] = $o->connection->table($o->tableName());
-		$q = $o->connection->mergeClauses($o->defaultClause(), $q);
+		$q = $o->connection->mergeClauses($o->defaultClause($defaultClauseParams), $q);
 		$a = $o->connection->select($q, $args, $returnAsSelf ? get_called_class() : null);
 		if($returnAsSelf)
 			foreach ($a as $o)
 				$o->clearModifications(); //XXX
 		return $a;
 	}
-	static public function FindOne(array $q = array(), $args = null)
+	static public function FindOne(array $q = array(), $args = null, $returnAsSelf = true, $defaultClauseParams = array())
 	{
 		//	$q['limit'] = array('0','1');
 		$cls = get_called_class();
-		$a = $cls::Find($q, $args);
+		$a = $cls::Find($q, $args,$returnAsSelf, $defaultClauseParams);
 		return count($a)?$a[0]:null;
 	}
 	static public function Search(array $q = array(), $args = null, $from = 0, $pageSize = 10, $sort = null)
