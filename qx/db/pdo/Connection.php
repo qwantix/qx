@@ -74,6 +74,8 @@ class Connection {
 		if($compiled)
 		{
 			list($s,$a) = $this->lastQuery;
+			//Format
+			$s = $this->formatSql($s);
 			if(!empty($a))
 				return str_replace(array_keys($a), array_map(function($v){
 					return is_numeric($v) ? $v : '"'.$v.'"';
@@ -83,6 +85,12 @@ class Connection {
 		}
 		return $this->lastQuery;
 	}
+	protected function formatSql($sql)
+	{
+		return preg_replace_callback('`\b(FROM|INNER JOIN|LEFT JOIN|RIGHT JOIN|WHERE|GROUP BY|ORDER BY|UNION)\b`', function($m){
+			return "\n".$m[1];
+		}, $sql);
+	}
 	public function exec($sqlOrClause, array $args = null)
 	{
 		return $this->_exec($sqlOrClause,$args); //Fix pass $args by reference problem
@@ -90,6 +98,12 @@ class Connection {
 	protected function _exec($sqlOrClause, array &$args = null) 
 	{
 		$sql = is_string($sqlOrClause) ? $sqlOrClause : $this->build($sqlOrClause, $args);
+		if($args)
+			$args = array_map(function($value){
+				if($value instanceof \DateTime)
+					$value = $value->format('Y-m-d H:i:s');
+				return $value;
+			}, $args);
 		$this->lastQuery = array($sql,$args);
 		if($this->debug)
 			\qx\Debug::Instance()->logQuery($sql,$args);
@@ -97,7 +111,7 @@ class Connection {
 		try {
 			$sth->execute($args);
 		} catch (\Exception $e) {
-			throw new \qx\DbException($e, $sql, $args);
+			throw new \qx\DbException($e, $this->formatSql($sql), $args);
 		}
 		return $sth;
 	}
@@ -244,7 +258,21 @@ class Connection {
 			$sql .= 'DISTINCT ';
 		$sql .= empty($select) ? '*' : $select;
 		$sql .= ' FROM ';
-		$sql .= $clause->from;
+		if(!empty($clause->union))
+		{
+			$union = array();
+			foreach ($clause->union as $cl)
+				$union[] = $this->build($cl, $args);
+
+			$sql .= '((' . implode (') UNION (', $union) . ')) as tmp';
+		}
+		else if(is_array($clause->from) || is_object($clause->from))
+		{
+			//Sub query
+			$sql .= '(' . $this->build($clause->from, $args) . ') as tmp';
+		}
+		else
+			$sql .= $clause->from;
 		if(!empty($clause->join)) {
 			$joins = array();
 			if(is_string($clause->join))
@@ -265,9 +293,10 @@ class Connection {
 		}
 		$w = '';
 		if(!empty($clause->where))
-		{
-			$clause->where = $this->buildWhereClose($clause->where, $args);
-		}
+			$clause->where = $this->buildWhereClose($clause->where, $args, $n = 0);
+		if(!empty($clause->having))
+			$clause->having = $this->buildWhereClose($clause->having, $args, $n);
+
 		//$w = !empty($clause->where) ? is_array($clause->where) ? '('.implode(') AND (',$clause->where).')' : $clause->where : '';
 		if(!empty($clause->where))
 			$sql .= ' WHERE '.$clause->where;
@@ -300,11 +329,23 @@ class Connection {
 					{
 						$in_values = array();
 						$argName = ':where_args_'.$n++.'_in_';
+						$hasNullValue = false;
 						foreach ($value as $i=>$v) {
+							if($v === null)
+							{
+								$hasNullValue = true;
+								continue;
+							}
 							$args[$argName.$i] = $v;
 							$in_values[] = $argName.$i;
 						}
-						$a[] = $key . ' IN('.implode(',',$in_values).')';
+						$or = array();
+						if($hasNullValue)
+							$or[] = "$key IS NULL";
+						if(!empty($in_values))
+							$or[] = $key . ' IN('.implode(',',$in_values).')';
+						if(!empty($or))
+							$a[] = '('.implode(' OR ', $or).')';
 					}
 					else if($value === null)
 					{
@@ -347,6 +388,7 @@ class Connection {
 			'where'=>array(),
 			'groupBy'=>array(),
 			'orderBy'=>array(),
+			'having'=>array(),
 			'limit'=>array()
 		);
 	}
@@ -359,7 +401,7 @@ class Connection {
 
 		$c = $this->createClause($c1->from);
 		
-		foreach(array('select','join','where','groupBy','orderBy','limit','distinct') as $part)
+		foreach(array('select','join','where','groupBy','having','orderBy','limit','distinct') as $part)
 		{
 			if(in_array($part,$overrides) && isset($c2->$part))
 				$c->$part = $c2->$part;
@@ -369,7 +411,7 @@ class Connection {
 					$c1->$part = array($c1->$part);
 				if(!is_array($c2->$part))
 					$c2->$part = array($c2->$part);
-				if($part == 'where')
+				if($part == 'where' || $part == 'having')
 					$c->$part = array($c1->$part, $c2->$part);
 				else
 					$c->$part = array_merge($c1->$part,$c2->$part);
@@ -478,6 +520,8 @@ class Connection {
 			|| isset($q['limit'])
 			|| isset($q['groupBy'])
 			|| isset($q['orderBy'])
+			|| isset($q['having'])
+			|| isset($q['union'])
 		;
 	}
 }
