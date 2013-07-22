@@ -252,6 +252,7 @@ class FormTypeDate extends FormTypeDefault {
 	{
 		parent::setValue($value);
 		$this->date = \DateTime::createFromFormat( __('@date_format') , $this->value);
+		//TODO DateTime::getLastErrors() 
 	}
 	public function getValue()
 	{
@@ -268,7 +269,7 @@ class FormTypeDate extends FormTypeDefault {
 Form::RegisterFormType('date', '\\qx\\FormTypeDate');
 
 class FormTypeTime extends FormTypeDefault {
-	private $date;
+	private $time;
 	public function setValue($value)
 	{
 		parent::setValue($value);
