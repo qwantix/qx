@@ -121,7 +121,8 @@ class Routes implements \IteratorAggregate
 			if($r->match($uri))
 				return $r->forScope($this->_scope);
 			if($this->_otherwise)
-				return $this->_otherwise->forScope($this->_scope);
+				return $this->_otherwise->forScope($this->_scope)
+							->setRest($uri);
 	}
 		
 	public function findByName($name)
