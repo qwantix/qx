@@ -51,10 +51,16 @@ namespace qx {
 		}
 		
 		private $lang;
+		private $country_lang;
 		private $entries = array();
 		public function __construct($lang, $autoLoad = true)
 		{
-			$this->lang = $lang;
+			$lang = explode('-', $lang);
+			$this->lang = $lang[0];
+
+			if(count($lang)>1)
+				$this->country_lang = $lang[1];
+			
 			if($autoLoad)
 				$this->load();
 		}
@@ -97,7 +103,12 @@ namespace qx {
 
 		public function getCountry()
 		{
-			return $this->lang; //TODO
+			if($this->country_lang)
+				return $this->country_lang; 
+			else if(__('@default_country_lang'))
+				return __('@default_country_lang');
+			else
+				return $this->lang;
 		}
 	}
 }
