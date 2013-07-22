@@ -120,9 +120,15 @@ class ViewController extends Controller
 		return $ctrl;
 	}
 
-	public function pathToUrl($routePath = null,array $args = null)
+	public function pathToUrl($routePath = null,array $args = null, $absolute = false)
 	{
-		return Url::FromRoute($this->route(), $routePath, $args);
+		$uri = Url::FromRoute($this->route(), $routePath, $args);
+		if($absolute)
+		{
+			$uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http')
+				. '://' . Config::Of('app')->get('host',$_SERVER['HTTP_HOST']) . $uri;
+		}
+		return $uri;
 	}
 
 	public function redirectTo($routePath,array $args = null, $permanent = false)
@@ -300,6 +306,11 @@ class ViewController extends Controller
 		catch(\Exception $e)
 		{
 			$this->response()->error = $e->getMessage();
+			if(\qx\App::Instance()->isDebug())
+			{
+				$this->response()->error_file = $e->getFile();
+				$this->response()->error_line = $e->getLine();
+			}
 		}
 		
 	}
