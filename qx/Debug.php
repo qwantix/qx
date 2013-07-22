@@ -26,7 +26,6 @@ class Debug
 		/**/
 	}
 
-
 	public function getQueries()
 	{
 		return $this->_queries;
