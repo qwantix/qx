@@ -9,6 +9,16 @@ namespace qx;
  */
 class App extends ViewController 
 {
+	static private $_Instance;
+	static public function Instance()
+	{
+		$class = get_called_class();
+		if(!self::$_Instance)
+			self::$_Instance = $class::Create();
+		return self::$_Instance;
+	}
+
+
 	/**
 	 * Create an instance of App
 	 * @return App 
@@ -71,6 +81,13 @@ class App extends ViewController
 		;
 		
 		Config::Load('app/config.json');
+
+		if($this->isDebug())
+		{
+			$ips = Config::Of('app')->get('debug.ip');
+			if(!empty($ips) && !in_array($_SERVER['REMOTE_ADDR'], $ips))
+				Config::Of('app')->set('debug',false); //Disable debug
+		}
 
 	}
 
