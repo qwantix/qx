@@ -65,9 +65,15 @@ class Controller extends Observable
 	 * Return owner of this controller
 	 * @return Controller
 	 */
-	public function owner()
+	public function owner($type = null)
 	{
-		return $this->_owner;
+		if(!$type)
+			return $this->_owner;
+
+		$owner = $this->_owner;
+		while($owner && !($owner instanceof $type))
+			$owner = $owner->_owner;
+		return $owner;
 	}
 	
 	private $_session;
