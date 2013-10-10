@@ -399,7 +399,7 @@ class Connection {
 		$c1 = (object)$c1;
 		$c2 = (object)$c2;
 
-		$c = $this->createClause($c1->from);
+		$c = $this->createClause(isset($c1->from)?$c1->from:'');
 		
 		foreach(array('select','join','where','groupBy','having','orderBy','limit','distinct') as $part)
 		{
