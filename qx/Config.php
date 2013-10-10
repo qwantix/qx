@@ -80,7 +80,14 @@ class Config
 	{
 		return array_key_exists($key, $this->conf) ? $this->conf[$key] : $default;
 	}
-
+	/**
+	 * Get all datas
+	 * @return stdCls
+	 */
+	public function getAll()
+	{
+		return (object)$this->conf;
+	}
 	/**
 	 * Clear conf
 	 * @param string $key
