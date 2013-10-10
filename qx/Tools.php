@@ -10,7 +10,8 @@ class Tools
 	
 	static public function IsAssoc(array $a)
 	{
-		return array_keys($a) !== range(0, count($a) - 1);
+		return (bool)count(array_filter(array_keys($a), 'is_string'));
+		//return array_keys($a) !== range(0, count($a) - 1);
 	}
 	
 	/**
