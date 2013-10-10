@@ -17,8 +17,13 @@ class Url
 	 * @param array $args
 	 * @return string 
 	 */
-	static public function FromRoute(Route $routeFrom,$routePath = null,array $args = null, $replaceEmptyArgs = true)
+	static public function FromRoute(Route $routeFrom = null,$routePath = null,array $args = null, $replaceEmptyArgs = true)
 	{
+		if($routeFrom == null)
+		{
+			$routeFrom = new Route(null,null,null,null);
+			$routeFrom = $routeFrom->forScope(App::Instance(),false);
+		}
 		$scope = $routeFrom->scope();
 		
 		if($routePath)
