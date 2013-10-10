@@ -67,6 +67,20 @@ class ObjectModel extends \qx\db\ObjectModel
 		$this->connection->delete($this->tableName(),$this->get_primaryKey(true));
 	}
 
+	public function __sleep()
+	{
+		return array_merge(array(
+			//"\0qx\\db\pdo\\ObjectModel\0connectionName"
+			'connectionName'
+		),
+		parent::__sleep());
+	}
+
+	public function __wakeup()
+	{
+		$this->connection = $this->connectionName ? Connection::Get($this->connectionName) : Connection::Current();
+	}
+	
 	static public function Find(array $q = array(),$args = null, $returnAsSelf = true, $defaultClauseParams = array())
 	{
 		$cls = get_called_class();
@@ -111,20 +125,20 @@ class ObjectModel extends \qx\db\ObjectModel
 			$count[0]->c
 		);
 	}
-	static public function Count(array $q = array(), $args = null)
+	static public function Count(array $q = array(), $args = null, $defaultClauseParams = array())
 	{
 		$cls = get_called_class();
 		$o = new $cls();
 		if(!isset($q['from']))
 			$q['from'] = $o->connection->table($o->tableName());
-		$q = $o->connection->mergeClauses($o->defaultClause(), $q);
+		$q = $o->connection->mergeClauses($o->defaultClause($defaultClauseParams), $q);
 		$count = $o->connection->select('SELECT COUNT(1) c FROM ('.$o->connection->build($q,$args).') t',$args);
 		return $count[0]->c;
 	}
-	static public function DeleteAll($filters = null)
+	static public function DeleteAll($filters = null, $args = null)
 	{
 		$cls = get_called_class();
 		$o = new $cls();
-		$o->connection->delete($o->tableName(), $filters);
+		$o->connection->delete($o->tableName(), $filters, $args);
 	}
 }
