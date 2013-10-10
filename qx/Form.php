@@ -178,11 +178,12 @@ class FormTypeDefault implements IFormType
 	{
 		if(!empty($this->opts->required) && $this->isEmpty())
 			throw new FormException(__('This field is required'));
-		if(!empty($this->opts->minChars) && strlen($this->value) < $this->opts->minChars)
+		if(!$this->isEmpty() && !empty($this->opts->minChars) && strlen($this->value) < $this->opts->minChars)
 			throw new FormException(__('This field require %s characters minimum',$this->opts->minChars));
-		if(!empty($this->opts->maxChars) && strlen($this->value) > $this->opts->maxChars)
+		if(!$this->isEmpty() && !empty($this->opts->maxChars) && strlen($this->value) > $this->opts->maxChars)
 			throw new FormException(__('This field is too long (%s characters maximum)',$this->opts->maxChars));
-			
+		if(isset($this->opts->validator) && is_callable($this->opts->validator))
+			call_user_func($this->opts->validator, $this);
 		return true;
 	}
 	public function isEmpty()
@@ -241,10 +242,39 @@ class FormTypeEmail extends FormTypeDefault {
 		parent::validate();
 		if (!$this->isEmpty() && !preg_match('`^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}$`i', $this->value))
 			throw new FormException(__("This field isn't a valid email"));
+		if(!$this->isEmpty() && !empty($this->opts->checkDns))
+		{
+			list($name,$host) = explode('@', $this->value);
+			if(!\checkdnsrr($host))
+				throw new FormException(__("This field isn't a valid email"));
+		}
 		return true;
 	}
 }
 Form::RegisterFormType('email', '\\qx\\FormTypeEmail');
+
+
+class FormTypePhoneNumber extends FormTypeDefault {
+	public function getValue()
+	{
+		return $this->value;
+	}
+	public function validate()
+	{
+		parent::validate();
+		/*
+		  + 33 (0)1 23 45 67 89
+		  +33123456789
+		  (+33)123456789
+		  (01) 23456789
+		  0123456789
+		 */
+		if (!$this->isEmpty() && !preg_match('`^([(]?[+]\s*\d{2}[)]?)?\s*([(]?0\d*[)]?)?[\s.-]*(\d[\s.-]*){8,9}$`i', $this->value))
+			throw new FormException(__("This field isn't a valid phone number"));
+		return true;
+	}
+}
+Form::RegisterFormType('phonenumber', '\\qx\\FormTypePhoneNumber');
 
 class FormTypeDate extends FormTypeDefault {
 	private $date;
@@ -252,6 +282,9 @@ class FormTypeDate extends FormTypeDefault {
 	{
 		parent::setValue($value);
 		$this->date = \DateTime::createFromFormat( __('@date_format') , $this->value);
+		/*$this->date = !empty($value) ? 
+			\DateTime::createFromFormat( __('@date_format') , $this->value) :
+			\DateTime::createFromFormat('U',0);*/
 		//TODO DateTime::getLastErrors() 
 	}
 	public function getValue()
@@ -274,6 +307,9 @@ class FormTypeTime extends FormTypeDefault {
 	{
 		parent::setValue($value);
 		$this->time = \DateTime::createFromFormat( __('@time_format') , $this->value);
+		/*$this->time = !empty($this->value) ? 
+			\DateTime::createFromFormat( __('@time_format') , $this->value) :
+			\DateTime::createFromFormat('U',0);*/
 	}
 	public function getValue()
 	{
