@@ -49,6 +49,7 @@ class Auth extends Controller
 				
 			$this->session = Session::Of($this->sessionKey);
 			$this->session->id = $this->auth->getId();
+			$this->fire('logged');
 			//$this->session->identity = $this->auth->getIdentity();
 			return true;
 		}
@@ -57,10 +58,10 @@ class Auth extends Controller
 			
 		}
 		return false;
-
 	}
 	public function logout()
 	{
+		$this->auth->logout($datas);
 		$this->session->destroy();
 	}
 	public function hasRight($right)

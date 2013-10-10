@@ -82,10 +82,10 @@ class App extends ViewController
 		
 		Config::Load('app/config.json');
 
-		if($this->isDebug())
+		if($this->isDebug() && php_sapi_name() != 'cli')
 		{
 			$ips = Config::Of('app')->get('debug.ip');
-			if(!empty($ips) && !in_array($_SERVER['REMOTE_ADDR'], $ips))
+			if(!empty($ips) && !in_array(@$_SERVER['REMOTE_ADDR'], $ips))
 				Config::Of('app')->set('debug',false); //Disable debug
 		}
 
@@ -105,7 +105,7 @@ class App extends ViewController
 	
 	public function updateTranslations()
 	{
-		$compiler = new tools\LocaleCompiler();
+		$compiler = new tools\LocaleCompiler(Config::Of('app')->get('locale.source','en'));
 		$compiler->process(Config::Of('app')->get('locales',array('en')));
 		return $compiler;
 	}

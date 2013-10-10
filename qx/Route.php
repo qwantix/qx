@@ -189,6 +189,7 @@ class Route
 	public function match($uri)
 	{
 		$p = $this->_pattern;
+		
 		if(!empty($this->_method))
 		{
 			$rm = strtoupper($_SERVER['REQUEST_METHOD']);
@@ -215,6 +216,7 @@ class Route
 			else
 				$p = "`^$p$`";
 		}
+		
 		if(!preg_match($p, $uri, $m))
 			return false;
 		array_shift($m);
