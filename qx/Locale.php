@@ -65,14 +65,16 @@ namespace qx {
 				$this->load();
 		}
 
-		public function load()
+		public function load($filename = null, $append = false)
 		{
 			$this->entries = array();
-			if(file_exists($this->filename()))
+			if(!$filename)
+				$filename = $this->filename();
+			if(file_exists($filename))
 			{
 				$t = array();
-				include $this->filename();
-				$t2 = array();
+				include $filename;
+				$t2 = $append ? $this->entries : array();
 				foreach($t as $k=>$v)
 					$t2[stripcslashes ($k)] = $v;
 				
