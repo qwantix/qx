@@ -30,7 +30,7 @@ require_once 'qx/Config.php';
 
 require_once 'qx/Url.php';
 require_once 'qx/Tools.php';
-
+require_once 'qx/Debug.php';
 
 class Qx {
     
