@@ -169,7 +169,7 @@ class ResponsePart
 		
 		if(empty($this->_type))
 		{
-			$ct = $_SERVER['HTTP_ACCEPT'];
+			$ct = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : 'html';
 			if (strpos($ct, 'json') !== false)
 				$type = 'json';
 			elseif (strpos($ct, 'html') !== false ||
@@ -178,7 +178,7 @@ class ResponsePart
 				$type = 'html';
 			elseif (strpos($ct, 'xml') !== false)
 				$type = 'xml';
-
+			
 			$this->_type = $type;
 		}
 		return $this->_type;
@@ -247,7 +247,10 @@ class ResponsePart
 			$this->_datas->__styles = array_merge($this->_datas->__styles, array($file));
 		return $this;
 	}
-
+	public function getRessources($type)
+	{
+		return $this->_controller->app()->mainResponse()->getRessources($type, $this);
+	}
 	protected function addFileTimestamp($file)
 	{
 		if($tm = @filemtime('www/'.$file)) //XXX

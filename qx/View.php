@@ -111,10 +111,19 @@ class ViewJson extends View
 	}
 	public function render(Data $datas, ViewController $ctrl = null)
 	{
+		header("Access-Control-Allow-Origin: ".$_SERVER['HTTP_HOST'],false);
+		$domains = \qx\Config::Of('app')->get('cross-domains',array());
+		if(is_string($domains))
+			$domains = preg_split('`[\s,;]+`', $domains);
+
+		if(!empty($domains) && is_array($domains))
+			foreach ($domains as $d)
+				header("Access-Control-Allow-Origin: $d",false);
+
 		$ctrl = $ctrl ? $ctrl : $this->getViewController();
 		$r = $ctrl->response();
-		$r->header('scripts',$r->__scripts);
-		$r->header('styles',$r->__styles);
+		$r->header('scripts',$r->getRessources('scripts'));
+		$r->header('styles',$r->getRessources('styles'));
 		$r->header('location', $_SERVER['REQUEST_URI']);
 		//header('Content-Type: application/json; charset=UTF-8');
 		$res = array(
