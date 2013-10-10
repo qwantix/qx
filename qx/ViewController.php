@@ -126,7 +126,7 @@ class ViewController extends Controller
 		if($absolute)
 		{
 			$uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http')
-				. '://' . Config::Of('app')->get('host',$_SERVER['HTTP_HOST']) . $uri;
+				. '://' . Config::Of('app')->get('host',@$_SERVER['HTTP_HOST']) . $uri;
 		}
 		return $uri;
 	}
@@ -167,6 +167,10 @@ class ViewController extends Controller
 				{
 					$this->onError($e);
 				}
+				catch(\Exception $e)
+				{
+					$this->onException($e);
+				}			
 			}
 			$this->app()->mainResponse()->append($this->response());
 			$this->postExec();
@@ -353,6 +357,10 @@ class ViewController extends Controller
 	}
 
 	protected function onError(\qx\Exception $e)
+	{
+		$this->onException($e);
+	}
+	protected function onException(\Exception $e)
 	{
 		throw $e;
 	}
