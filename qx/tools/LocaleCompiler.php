@@ -14,6 +14,11 @@ class LocaleCompiler
 		self::$patterns[] = (object)array('fileMask'=>$fileMask,'mask'=>$mask,'index'=>$index);
 	}
 	
+	private $_sourceLang;
+	public function __construct($sourceLang = null)
+	{
+		$this->_sourceLang = $sourceLang;
+	}
 	private $_searchPath = array();
 	public function addSearchPath($searchPath)
 	{
@@ -93,10 +98,10 @@ class LocaleCompiler
 	private function writeFile($lang)
 	{
 		$locale = new qx\Locale($lang);
-		
+		$isSourceLang = $lang == $this->_sourceLang;
 		$s = array('<?php // Translation <'.$lang.'>','','');
 		$missings = array();
-		$writer = function($list) use ($locale, &$missings, &$s)
+		$writer = function($list) use ($locale, &$missings, &$s, $isSourceLang)
 		{
 			foreach($list as $key=>$files)
 			{
@@ -106,25 +111,25 @@ class LocaleCompiler
 				foreach($files as $f=>$lines)
 					$s[] = '@'.$f.'('.implode(', ',$lines).')';
 				$s[] = '*/';
-				
 				$exists = $locale->exists($key);
 				$s[] = ($exists?'':'#'). '$t[\''.addcslashes ($key,"'").'\'] = '.
 						($exists && strlen($key.$locale->get($key))>70?"\n\t\t":'').'"'.($exists?addcslashes ($locale->get($key),'"'):'').'";';
 				$s[] = '';
-				if(!$exists)
+				if(!$exists && (!$isSourceLang || ($isSourceLang && ($key{0} == '$' || $key{0} == '@'))))
 					$missings[] = "\t - ".$key;
 			}
 		};
 
 		$vars = array();
+		$entries = $this->entries;
 		//Extract vars
-		foreach ($this->entries as $key => $value) {
+		foreach ($entries as $key => $value) {
 			if($key{0} === '@')
 			{
-				unset($this->entries[$key]);
+				unset($entries[$key]);
 				$vars[$key] = $value;
 			}
-			elseif(preg_match('`[\w]_[\w]`', $key))
+			elseif(preg_match('`^[^$][\w]+_[\w]`', $key))
 			{
 				$this->messages[]="If '$key' is a var use @ to declare it as var";
 			}
@@ -136,9 +141,7 @@ class LocaleCompiler
 		$s[] = '';
 		$s[] = '/// Contents';
 		$s[] = '';
-		$writer($this->entries);
-
-
+		$writer($entries);
 
 		if(!empty($missings))
 			$this->messages[] = "Missing translations for $lang : \n ".implode ("\n", $missings);
