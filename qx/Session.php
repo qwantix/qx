@@ -24,7 +24,7 @@ class Session
 					
 					//'$'.@$_SERVER['HTTP_USER_AGENT'].
 					//'|'.$_SERVER['HTTP_HOST'].
-					.'-'.$_SERVER['REMOTE_ADDR']
+					.'-'.@$_SERVER['REMOTE_ADDR']
 					//'/'.$_SERVER['HTTP_ACCEPT_LANGUAGE'].
 				);
 	} 
@@ -71,6 +71,8 @@ class Session
 		self::CheckAutoStart();
 		if(isset($_REQUEST[self::$SESSION_TOKEN_FIELD]) && 
 			$_REQUEST[self::$SESSION_TOKEN_FIELD] == self::Token())
+			return true;
+		if(\qx\Request::GetHeader(self::$SESSION_TOKEN_FIELD) == self::Token())
 			return true;
 		return false;
 	}
