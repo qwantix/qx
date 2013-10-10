@@ -180,48 +180,49 @@ class ObjectModel extends \qx\Observable
 	{
 		if(in_array($name, $this->_fields))
 		{
-			switch ($this->_fieldsDefinitions[$name]['type'])
-			{
-				case 'int':
-					$value = (int)$value;
-					break;
-				case 'float':
-					$value = (float)$value;
-					break;
-				case 'date':
-					if($value instanceof \DateTime)
-						$value = $value->format('Y-m-d');
-					elseif($value !== null && !preg_match('`^\d{4}-\d{2}-\d{2}$`', $value))
-					{
-						if($dt = \DateTime::createFromFormat( __('@date_format') , $value))
-							$value = $dt->format('Y-m-d');
-						else
-							$value = '0000-00-00';
-					}
-					break;
-				case 'time':
-					if($value instanceof \DateTime)
-						$value = $value->format('H:i:s');
-					elseif($value !== null && !preg_match('`^\d{2}:\d{2}:\d{2}$`', $value))
-					{
-						if($dt = \DateTime::createFromFormat( __('@time_format') , $value))
-							$value = $dt->format('H:i:s');
-						else
-							$value = '00:00:00';
-					}
-					break;
-				case 'datetime':
-					if($value instanceof \DateTime)
-						$value = $value->format('Y-m-d H:i:s');
-					elseif($value !== null && !preg_match('`^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$`', $value))
-					{
-						if($dt = \DateTime::createFromFormat( __('@datetime_format') , $value))
-							$value = $dt->format('Y-m-d H:i:s');
-						else
-							$value = '0000-00-00';
-					}
-					break;
-			}
+			if($value !== null) //Keep null values
+				switch ($this->_fieldsDefinitions[$name]['type'])
+				{
+					case 'int':
+						$value = (int)$value;
+						break;
+					case 'float':
+						$value = (float)$value;
+						break;
+					case 'date':
+						if($value instanceof \DateTime)
+							$value = $value->format('Y-m-d');
+						elseif($value !== null && !preg_match('`^\d{4}-\d{2}-\d{2}$`', $value))
+						{
+							if($dt = \DateTime::createFromFormat( __('@date_format') , $value))
+								$value = $dt->format('Y-m-d');
+							else
+								$value = '0000-00-00';
+						}
+						break;
+					case 'time':
+						if($value instanceof \DateTime)
+							$value = $value->format('H:i:s');
+						elseif($value !== null && !preg_match('`^\d{2}:\d{2}:\d{2}$`', $value))
+						{
+							if($dt = \DateTime::createFromFormat( __('@time_format') , $value))
+								$value = $dt->format('H:i:s');
+							else
+								$value = '00:00:00';
+						}
+						break;
+					case 'datetime':
+						if($value instanceof \DateTime)
+							$value = $value->format('Y-m-d H:i:s');
+						elseif($value !== null && !preg_match('`^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$`', $value))
+						{
+							if($dt = \DateTime::createFromFormat( __('@datetime_format') , $value))
+								$value = $dt->format('Y-m-d H:i:s');
+							else
+								$value = '0000-00-00';
+						}
+						break;
+				}
 		}
 		
 		$this->_datas[$name] = $value;
@@ -328,6 +329,24 @@ class ObjectModel extends \qx\Observable
 		return get_class($this).'('.(is_array($pk)?implode(',',$pk):$pk).')';
 	}
 	
+	public function __sleep()
+	{
+		return array(
+			"_fields",
+			"_fieldsDefinitions",
+			"_foreignsTables",
+			"_datas",
+			"_extraDatas",
+			"_primaryKey",
+			"_get_prefix",
+			"_set_prefix",
+			"_name",
+			"_modifiedFields",
+			"\0qx\\db\\ObjectModel\0_autoFetch",
+			"primaryKeyFilled"
+		);
+	}
+
 	/**
 	 * Session object for this object
 	 */
