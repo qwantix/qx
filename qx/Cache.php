@@ -3,6 +3,7 @@ namespace qx;
 /**
  * @author Brice Dauzats
  */
+
 class Cache {
 	
 	static private $_caches = array();
@@ -31,7 +32,7 @@ class Cache {
 	{
 		$data = serialize($value);
 		$fn = $this->getFilename($name);
-		$this->_dataCache[$fn] = $name;
+		$this->_dataCache[$fn] = $value;
 		return file_put_contents($fn, $data);
 	}
 
