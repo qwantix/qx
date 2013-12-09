@@ -59,7 +59,9 @@ class ObjectModel extends \qx\Observable
 				$this->_datas[$name] = $this->{$this->_set_prefix.$name}($value);
 			else
 				$this->set_field($name, $value);
-			if(isset($this->_datas[$name]) && $lastValue !== $this->_datas[$name])
+			if( (isset($this->_datas[$name]) && $lastValue !== $this->_datas[$name] ) 
+				|| ($value === null && $lastValue !== null) )
+			//if((isset($this->_datas[$name]) || $value === null) && $lastValue !== $this->_datas[$name])
 				$this->setModified($name);
 		}
 		else if(method_exists($this, $this->_set_prefix.$name))
@@ -100,7 +102,7 @@ class ObjectModel extends \qx\Observable
 			$this->_datas = array();
 		
 		foreach ($this->_fields as $f)
-			if(isset($datas->$f) && $this->$f !== $datas->$f)
+			if(property_exists($datas, $f) && $this->$f !== $datas->$f)
 				$this->$f = $datas->$f;
 			
 		if($isInit)
@@ -122,11 +124,11 @@ class ObjectModel extends \qx\Observable
 		{
 			$a = array();
 			foreach ($this->_primaryKey as $f)
-				$a[$f] = $this->$f;
+				$a['`'.$this->tableName()."`.`$f`"] = $this->$f;
 			return $a;
 		}
 		else
-			return $forceAssoc ? array($this->_primaryKey=>@$this->_datas[$this->_primaryKey]) : @$this->_datas[$this->_primaryKey];
+			return $forceAssoc ? array('`'.$this->tableName()."`.`$this->_primaryKey`"=>@$this->_datas[$this->_primaryKey]) : @$this->_datas[$this->_primaryKey];
 	}
 
 	public function set_primaryKey($datas)
@@ -224,7 +226,6 @@ class ObjectModel extends \qx\Observable
 						break;
 				}
 		}
-		
 		$this->_datas[$name] = $value;
 	}
 	protected function get_field($name)
