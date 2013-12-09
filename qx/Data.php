@@ -58,7 +58,7 @@ class Data implements \Serializable, \IteratorAggregate, \ArrayAccess
 
 	public function __clone()
 	{
-		return clone $this;
+		//return clone $this;
 	}
 
 	public function merge($datas)
