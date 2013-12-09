@@ -69,7 +69,8 @@ class Controller extends Observable
 	{
 		if(!$type)
 			return $this->_owner;
-
+		if(is_string($type))
+			$type  = str_replace('.', '\\', $type); //Replace . by \
 		$owner = $this->_owner;
 		while($owner && !($owner instanceof $type))
 			$owner = $owner->_owner;
