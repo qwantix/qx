@@ -56,7 +56,7 @@ namespace qx {
 		public function __construct($lang, $autoLoad = true)
 		{
 			$lang = explode('-', $lang);
-			$this->lang = $lang[0];
+			$this->lang = substr($lang[0], 0,2);
 
 			if(count($lang)>1)
 				$this->country_lang = $lang[1];
