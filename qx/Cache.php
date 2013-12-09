@@ -62,9 +62,23 @@ class Cache {
 		}
 		return null;
 	}
-
+	public function isOlderThan($name,$time)
+	{
+		if(!is_numeric($time))
+			$time = filemtime($time);
+		return !$this->exists($name) || $this->exists($name) && filemtime($this->getFilename($name)) < $time;
+	}
 	public function clear($name = null)
 	{
-		//TODO
+		if($name)
+			$this->exists($name) && unlink($this->getFilename($name));
+		else
+		{
+			$dir = Storage::GetDir('cache/'.$this->of,true);
+			foreach ($dir as $fn) {
+				if($fn !== '.' && $fn !== '..' && is_file($dir.$fn))
+					unlink($dir.$fn);
+			}
+		}
 	}
 }
