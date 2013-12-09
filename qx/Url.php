@@ -57,11 +57,11 @@ class Url
 		}
 		
 		$path = strtolower($path);
-		$url = '';
+		$urlParts = array();
 		if(!isset(self::$_Path2Url[$path]))
 		{
 			//Si le chemin n'a pas été calculé on créé l'url
-			$url = Config::Of('app')->get('wwwroot').'/';
+			$urlParts[] = Config::Of('app')->get('wwwroot').'/';
 
 			$pathToks = explode('.',$path);
 			$routes = $scope->routes();
@@ -72,7 +72,7 @@ class Url
 				$currentPath .= ($currentPath === ''?'':'.').$tok;
 				if(isset(self::$_Path2Url[$currentPath]))
 				{
-					$url = self::$_Path2Url[$currentPath];
+					$urlParts = self::$_Path2Url[$currentPath];
 					$routes = self::$_Path2Rte[$currentPath]; //on considère qu'il a déjà été calculé car déjà en cache
 					continue;
 				}
@@ -95,49 +95,66 @@ class Url
 							self::$_Path2Rte[$currentPath] = $class::RoutesDefinition();
 						}
 						$routes = self::$_Path2Rte[$currentPath];
-						$url .= $route->pattern();
-						self::$_Path2Url[$currentPath] = $url; //On stocke l'url intermediaire
+						$urlParts[] = $route->writer() ? $route->writer() : $route->pattern();
+						self::$_Path2Url[$currentPath] = $urlParts; //On stocke l'url intermediaire
 						continue;
 					}
-					else if($type == Route::ACTION)
+					else if($type == Route::ACTION || $type == Route::REMOTE_METHOD)
 					{
-						$url .= $route->pattern();
-					}
-					else if($type == Route::REMOTE_METHOD)
-					{
-						$url .= $route->pattern();
+						$urlParts[] = $route->writer() ? $route->writer() : $route->pattern();
 					}
 					else
 						throw new Exception('Unknow route type during uri compilation');
 
 				}
-				self::$_Path2Url[$path] = $url;
+				self::$_Path2Url[$path] = $urlParts;
 				break; //On sort dans tout les cas, la boucle se fait par le "continue" dans le premier "if"    
 			}
 		}
 		else
-		{   //On récupère l'url du cache
-			$url = self::$_Path2Url[$path];
+		{   //Get url from cache
+			$urlParts = array_merge(self::$_Path2Url[$path]); 
 		}
-		
-		//Paramètres
-		$get = array();
-		if(!empty($args))
+
+		$url = '';
+
+		//Parameters
+		$get = !empty($args) ? (array)$args : array();
+		foreach ($urlParts as $urlPart)
 		{
-			foreach($args as $k=>$v)
+			if($urlPart instanceof \Closure)
 			{
-				$url = preg_replace('`([#:~])'.$k.'`', $v, $url, -1, $c);
-				if($c == 0)
-					$get[$k] = $v; 
+				$url .= $urlPart($args,$rest);
+				foreach ($get as $k => $v)
+					if(!array_key_exists($k, $rest))
+						unset($get[$k]);
+			}
+			else
+			{
+				$s = $urlPart;
+				if(!empty($args))
+				{
+					foreach($args as $k=>$v)
+					{
+						$s = preg_replace('`([#:~])'.$k.'`', $v, $s, -1, $c);
+						if($c != 0)
+							unset($get[$k]); 
+					}
+					if($replaceEmptyArgs)
+					{
+						//Replace empty number arguments
+						$s = preg_replace('([#][\w]+)', '0', $s);
+					}
+				}
+				$url .= $s;
 			}
 		}
-		if($replaceEmptyArgs)
-		{
-			//Replace empty number arguments
-			$url = preg_replace('([#][\w]+)', '0', $url);
-		}
 		if(!empty($get))
-			$url .= '?'.http_build_query($get); //Sera mis à jour en http_build_query($get,null,null,PHP_QUERY_RFC3986)
+		{
+			$get = http_build_query($get);
+			if(!empty($get))
+				$url .= '?'.$get; //Sera mis à jour en http_build_query($get,null,null,PHP_QUERY_RFC3986)
+		}
 		
 		return $url;
 	}

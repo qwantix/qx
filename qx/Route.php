@@ -27,7 +27,13 @@ class Route
 	{
 		return $this->_pattern;
 	}
-	
+
+	private $_writer;
+	public function writer()
+	{
+		return $this->_writer;
+	}
+
 	private $_action;
 	public function action()
 	{
@@ -168,6 +174,7 @@ class Route
 		{
 			$pattern = (object)$pattern;
 			$this->_pattern = @$pattern->pattern;
+			$this->_writer = @$pattern->writer;
 			$this->_contentType = @$pattern->contentType;
 			$this->_method = @$pattern->method;
 			
