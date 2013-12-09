@@ -6,19 +6,24 @@ namespace qx;
  */
 class Loader extends Observable
 {
-	static private $_paths = array();
+	static private 
+			$_paths = array(),
+			$_loaders = array()
+	;
 	static public function AddPath($path)
 	{
-		//set_include_path($path.PATH_SEPARATOR.get_include_path());
 		if($path{strlen($path-1)} != '/')
 			$path .= '/';
 		if(!in_array($path, self::$_paths))
 			self::$_paths[] = $path;
 	}
-	
+	static public function AddLoader($handler)
+	{
+		self::$_loaders[] = $handler;
+	}
 	static public function Load($class)
 	{
-		$fn = implode(DIRECTORY_SEPARATOR, explode('\\',$class)) . '.php';
+		$fn = implode(DIRECTORY_SEPARATOR, preg_split('`[\\\\_]`',$class)) . '.php';
 		foreach (self::$_paths as $p) {
 			if(file_exists($p.$fn))
 			{
@@ -26,6 +31,10 @@ class Loader extends Observable
 				return;
 			}
 		}
+		foreach (self::$_loaders as $ldr)
+			if(call_user_func($ldr, $class))
+				return true;
+
 		//Otherwise...
 		require_once $fn;
 	}
