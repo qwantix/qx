@@ -85,7 +85,7 @@ class Response extends Observable
 				break;
 		}
 
-		if($enc = $part->encapsulation())
+		if(isset($part) && ($enc = $part->encapsulation()))
 			$out = $part->type($enc)->createView()->render(new Data($out),$part->controller());
 		return $out;
 	}
@@ -147,9 +147,11 @@ class Response extends Observable
 				$this->mergeInclusions($part->datas(), $data);
 				return $this->{'__'.$type};
 			};*/
-	public function append(ResponsePart $part)
+	public function append(ResponsePart $part, $ns = null)
 	{
 		$this->_parts[] = $part;
+		if($ns)
+			$part->ns($ns);
 	}
 	
 	public function clear()
