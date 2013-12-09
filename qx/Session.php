@@ -65,6 +65,21 @@ class Session
 		if(self::Started())
 			session_destroy();
 	}
+	static public function Release()
+	{
+		if(self::$started)
+		{
+			session_write_close();
+			self::$started = false;
+		}
+	}
+	/**
+	 * @depreceated
+	 */
+	static public function Close()
+	{
+		self::Release();
+	}
 
 	static public function Check()
 	{
