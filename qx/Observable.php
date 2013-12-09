@@ -62,7 +62,8 @@ class Observable
 	{
 		if(!($nameOrEvent instanceof Event))
 			$e = new Event($nameOrEvent, $datas);
-
+		else
+			$e = $nameOrEvent;
 		$e->target = $this;
 		$n = 0;
 		if(!isset($this->_handlers[$e->name]))
