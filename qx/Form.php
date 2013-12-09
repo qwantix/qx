@@ -172,6 +172,8 @@ class FormTypeDefault implements IFormType
 	}
 	public function getValue()
 	{
+		if(!empty($this->opts->nullIfEmpty) && empty($this->value))
+			return null;
 		return $this->value;
 	}
 	public function validate()
