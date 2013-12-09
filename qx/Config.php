@@ -27,6 +27,9 @@ class Config
 		if(file_exists($filename))
 		{
 				$conf = json_decode(file_get_contents($filename),true);
+				if(!$conf && filesize($filename)>1)
+					throw new Exception("Error in config file '$filename'");
+					
 				if(!empty($conf))
 					self::$_Config = Tools::merge ($clear?array():self::$_Config,$conf);
 			self::$_ConfigIndex = array(); //Reset cache
